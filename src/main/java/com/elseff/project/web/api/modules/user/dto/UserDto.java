@@ -10,10 +10,7 @@ import javax.validation.constraints.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
-
-    @NotNull
-    @NotEmpty
-    @Positive
+    @Positive(message = "id should be a greater than 0")
     private Long id;
 
     @Size(min = 2, max = 40)
