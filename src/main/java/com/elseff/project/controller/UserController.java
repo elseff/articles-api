@@ -1,8 +1,8 @@
-package com.elseff.project.web.api.modules.user;
+package com.elseff.project.controller;
 
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
-import com.elseff.project.web.api.modules.user.dto.UserDto;
-import com.elseff.project.web.api.modules.user.service.UserService;
+import com.elseff.project.dto.user.UserAllFieldsDto;
+import com.elseff.project.dto.user.UserDto;
+import com.elseff.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,12 +36,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserAllFieldsDto getSpecific(@PathVariable Long id) {
+    public UserAllFieldsDto getSpecific(@PathVariable String id) {
         return userService.getUserById(id);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
     }
 }

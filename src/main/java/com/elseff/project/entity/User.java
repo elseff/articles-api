@@ -1,4 +1,4 @@
-package com.elseff.project.persistence;
+package com.elseff.project.entity;
 
 import lombok.*;
 

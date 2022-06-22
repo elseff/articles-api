@@ -1,4 +1,4 @@
-package com.elseff.project.web.api.modules.user.dto;
+package com.elseff.project.dto.user;
 
 import lombok.*;
 
