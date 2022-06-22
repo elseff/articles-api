@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: '${url}'
+    username: '${username}'
+    password: '${password}'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+logging:
+  level:
+    org:
+      springframework:
+        web: ERROR
+    com:
+      elseff:
+        project: debug
+server:
+  error:
+    include-message: always
+    include-binding-errors: never
+    include-stacktrace: never
+    whitelabel:
+      enabled: true
