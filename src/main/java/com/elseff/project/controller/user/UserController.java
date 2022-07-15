@@ -1,8 +1,10 @@
-package com.elseff.project.controller;
+package com.elseff.project.controller.user;
 
+import com.elseff.project.dto.user.UserAllFieldsCanBeNullDto;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
-import com.elseff.project.service.UserService;
+import com.elseff.project.exception.IdLessThanZeroException;
+import com.elseff.project.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,12 +38,20 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserAllFieldsDto getSpecific(@PathVariable String id) {
+    public UserAllFieldsDto getSpecific(@PathVariable Long id) {
+        if (id < 0) {
+            throw new IdLessThanZeroException();
+        }
         return userService.getUserById(id);
     }
-
+        // вот сюда придет запрос, здесь сервис в бд обращается и удаляет
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable String id) {
+    public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+    }
+
+    @PatchMapping("/{id}")
+    public UserAllFieldsDto updateUser(@RequestBody @Valid UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto, @PathVariable Long id){
+        return userService.updateUser(id, userAllFieldsCanBeNullDto);
     }
 }
