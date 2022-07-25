@@ -24,8 +24,9 @@ public class ArticleController {
     public ArticleController(ArticleService articleService) {
         this.articleService = articleService;
     }
+
     @GetMapping()
-    public List<ArticleDto> getArticles(){
+    public List<ArticleDto> getArticles() {
         return articleService.getAllArticles();
     }
 
@@ -48,7 +49,7 @@ public class ArticleController {
     }
 
     @PatchMapping("/{id}")
-    public ArticleDto updateArticle(@RequestBody @Valid ArticleDto articleDto, @PathVariable Long id){
+    public ArticleDto updateArticle(@RequestBody @Valid ArticleDto articleDto, @PathVariable Long id) {
         return articleService.updateArticle(id, articleDto);
     }
 }

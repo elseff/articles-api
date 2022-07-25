@@ -67,10 +67,13 @@ public class UserService {
 
     public UserAllFieldsDto updateUser(Long id, UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto) {
         User userFromDb = repository.getById(id);
-        if (userAllFieldsCanBeNullDto.getFirstName() != null) userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
-        if (userAllFieldsCanBeNullDto.getLastName() != null) userFromDb.setLastName(userAllFieldsCanBeNullDto.getLastName());
+        if (userAllFieldsCanBeNullDto.getFirstName() != null)
+            userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
+        if (userAllFieldsCanBeNullDto.getLastName() != null)
+            userFromDb.setLastName(userAllFieldsCanBeNullDto.getLastName());
         if (userAllFieldsCanBeNullDto.getEmail() != null) userFromDb.setEmail(userAllFieldsCanBeNullDto.getEmail());
-        if (userAllFieldsCanBeNullDto.getCountry()!=null) userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
+        if (userAllFieldsCanBeNullDto.getCountry() != null)
+            userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
         repository.save(userFromDb);
         return modelMapper.map(userFromDb, UserAllFieldsDto.class);
     }

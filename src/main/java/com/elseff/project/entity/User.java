@@ -8,9 +8,9 @@ import javax.persistence.*;
 @Getter
 @Setter
 @Builder
-@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 public class User {
     @Id
     @Column(name = "id", nullable = false)

@@ -2,7 +2,10 @@ package com.elseff.project.dto.user;
 
 import lombok.*;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -13,12 +16,12 @@ public class UserAllFieldsCanBeNullDto {
     @Positive(message = "id should be a greater than 0")
     private Long id;
 
-    @Size(min = 2, max = 40, message = "firstname size should be between 2 and 40")
     @Pattern(regexp = "([A-Z][a-zA-Z]*)", message = "firstname should be valid")
+    @Size(min = 2, max = 40, message = "firstname size should be between 2 and 40")
     private String firstName;
 
-    @Size(min = 2, max = 40,message = "firstname size should be between 2 and 40")
     @Pattern(regexp = "([A-Z][a-zA-Z]*)", message = "lastname should be valid")
+    @Size(min = 2, max = 40, message = "firstname size should be between 2 and 40")
     private String lastName;
 
     @Email(message = "email should be valid")

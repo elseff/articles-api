@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ArticleService{
+public class ArticleService {
 
     private final ArticleRepository repository;
 
@@ -30,7 +30,7 @@ public class ArticleService{
     public List<ArticleDto> getAllArticles() {
         return repository.findAll()
                 .stream()
-                .map(article->modelMapper.map(article,ArticleDto.class))
+                .map(article -> modelMapper.map(article, ArticleDto.class))
                 .collect(Collectors.toList());
     }
 
@@ -57,17 +57,17 @@ public class ArticleService{
     }
 
     public ArticleDto addArticle(ArticleDto articleDto) {
-        Article article = modelMapper.map(articleDto,Article.class);
+        Article article = modelMapper.map(articleDto, Article.class);
         article.setDate(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new Date()));
         Article articleFromDb = repository.save(article);
-        return modelMapper.map(articleFromDb,ArticleDto.class);
+        return modelMapper.map(articleFromDb, ArticleDto.class);
     }
 
-    public ArticleDto updateArticle(Long id,ArticleDto articleDto) {
+    public ArticleDto updateArticle(Long id, ArticleDto articleDto) {
         Article articleFromDb = repository.getById(id);
         if (articleDto.getTitle() != null) articleFromDb.setTitle(articleDto.getTitle());
         if (articleDto.getDescription() != null) articleFromDb.setDescription(articleDto.getDescription());
-        if (articleDto.getDate()!= null) articleFromDb.setDate(articleFromDb.getDate());
+        if (articleDto.getDate() != null) articleFromDb.setDate(articleFromDb.getDate());
         repository.save(articleFromDb);
         return modelMapper.map(articleFromDb, ArticleDto.class);
     }
