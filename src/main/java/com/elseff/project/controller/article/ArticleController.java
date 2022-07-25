@@ -31,7 +31,6 @@ public class ArticleController {
 
     @PostMapping()
     public ArticleDto addArticle(@RequestBody @Valid ArticleDto articleDto) {
-        System.out.println(articleDto.toString());
         return articleService.addArticle(articleDto);
     }
 

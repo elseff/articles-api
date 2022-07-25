@@ -44,14 +44,14 @@ public class UserController {
         }
         return userService.getUserById(id);
     }
-        // вот сюда придет запрос, здесь сервис в бд обращается и удаляет
+
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
 
     @PatchMapping("/{id}")
-    public UserAllFieldsDto updateUser(@RequestBody @Valid UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto, @PathVariable Long id){
+    public UserAllFieldsDto updateUser(@RequestBody @Valid UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto, @PathVariable Long id) {
         return userService.updateUser(id, userAllFieldsCanBeNullDto);
     }
 }
