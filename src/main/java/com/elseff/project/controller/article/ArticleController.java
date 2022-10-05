@@ -15,7 +15,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/articles")
-@CrossOrigin(origins = {"http://192.168.100.3:4200", "http://localhost:4200"})
+@CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
 public class ArticleController {
 
     private final ArticleService articleService;
