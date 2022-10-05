@@ -1,2 +1,3 @@
-# test-rest-api
-rest api spring boot for study
+# my-app
+project for study \
+BackEnd past of project
