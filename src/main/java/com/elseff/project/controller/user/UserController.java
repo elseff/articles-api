@@ -3,7 +3,6 @@ package com.elseff.project.controller.user;
 import com.elseff.project.dto.user.UserAllFieldsCanBeNullDto;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
-import com.elseff.project.exception.IdLessThanZeroException;
 import com.elseff.project.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import java.util.List;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 @CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
 public class UserController {
 
@@ -32,16 +31,8 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PostMapping()
-    public UserAllFieldsDto addUser(@RequestBody @Valid UserAllFieldsDto userAllFieldsDto) {
-        return userService.addUser(userAllFieldsDto);
-    }
-
     @GetMapping("/{id}")
     public UserAllFieldsDto getSpecific(@PathVariable Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         return userService.getUserById(id);
     }
 

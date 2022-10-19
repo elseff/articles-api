@@ -48,12 +48,6 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserAllFieldsDto addUser(UserAllFieldsDto userAllFieldsDto) {
-        User user = modelMapper.map(userAllFieldsDto, User.class);
-        User userFromDb = repository.save(user);
-        return modelMapper.map(userFromDb, UserAllFieldsDto.class);
-    }
-
     public void deleteUser(Long id) {
         if (id < 0) {
             throw new IdLessThanZeroException();

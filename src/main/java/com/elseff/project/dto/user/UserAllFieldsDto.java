@@ -33,4 +33,9 @@ public class UserAllFieldsDto {
     @NotNull(message = "country shouldn't be a null")
     @NotEmpty(message = "country shouldn't be a empty")
     private String country;
+
+    @NotNull(message = "password shouldn't be a null")
+    @NotEmpty(message = "password shouldn't be a empty")
+    @Size(min = 4, message = "password size should be greater than 4")
+    private String password;
 }

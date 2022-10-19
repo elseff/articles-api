@@ -14,7 +14,7 @@ import java.util.List;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/articles")
+@RequestMapping("/api/v1/articles")
 @CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
 public class ArticleController {
 
@@ -25,12 +25,12 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @GetMapping()
+    @GetMapping
     public List<ArticleDto> getArticles() {
         return articleService.getAllArticles();
     }
 
-    @PostMapping()
+    @PostMapping
     public ArticleDto addArticle(@RequestBody @Valid ArticleDto articleDto) {
         return articleService.addArticle(articleDto);
     }
