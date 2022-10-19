@@ -1,3 +1,3 @@
 # my-app
 project for study \
-BackEnd past of project
+BackEnd part of project
