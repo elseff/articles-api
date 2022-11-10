@@ -13,6 +13,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ArticleDto {
+
     @Positive(message = "id should be a greater than 0")
     private Long id;
 

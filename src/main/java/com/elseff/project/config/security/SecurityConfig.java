@@ -14,20 +14,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
 
+        http.cors();
+
         http.authorizeRequests()
-                    .antMatchers("/auth/register/**").permitAll()
-                    .antMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasAuthority("ADMIN")
-                    .anyRequest().authenticated()
+                .antMatchers("/auth/register/**").permitAll()
+                .antMatchers("/auth/login/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasAuthority("ADMIN")
+                .anyRequest().authenticated()
                 .and()
-                    .httpBasic()
+                .httpBasic()
                 .and()
-                    .logout().permitAll();
+                .logout().logoutUrl("/logout").permitAll();
     }
 
     @Override
