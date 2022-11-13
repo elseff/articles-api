@@ -49,7 +49,7 @@ public class AuthService {
                 userAllFieldsDto.getEmail(), userAllFieldsDto.getPassword()).getBytes(StandardCharsets.UTF_8));
         log.info("User with email {} has been successfully registered", userFromDb.getEmail());
 
-        return new AuthResponse(userAllFieldsDto.getEmail(),token);
+        return new AuthResponse(userFromDb.getId(),userAllFieldsDto.getEmail(),token);
     }
 
     public AuthResponse login(@Valid AuthRequest authRequest) {
@@ -65,7 +65,7 @@ public class AuthService {
                 String token = Base64.encodeBase64String(String.format("%s:%s",
                         authRequest.getEmail(), authRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
                 log.info("User with email {} has been successfully login", authRequest.getEmail());
-                return new AuthResponse(authRequest.getEmail(),token);
+                return new AuthResponse(userFromDb.getId(),authRequest.getEmail(),token);
             }
         }
     }
