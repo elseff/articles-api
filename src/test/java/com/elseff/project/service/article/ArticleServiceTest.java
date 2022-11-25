@@ -2,11 +2,11 @@ package com.elseff.project.service.article;
 
 import com.elseff.project.dto.article.ArticleDto;
 import com.elseff.project.entity.Article;
-import com.elseff.project.exception.IdLessThanZeroException;
 import com.elseff.project.exception.article.ArticleNotFoundException;
 import com.elseff.project.repository.ArticleRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -41,6 +41,7 @@ class ArticleServiceTest {
     }
 
     @Test
+    @DisplayName("Get all articles")
     void getAllArticles() {
         given(repository.findAll()).willReturn(Arrays.asList(
                 new Article(),
@@ -59,30 +60,7 @@ class ArticleServiceTest {
     }
 
     @Test
-    void findById_If_Id_Less_Than_Zero() {
-        IdLessThanZeroException idLessThanZeroException = Assertions.assertThrows(IdLessThanZeroException.class, () -> service.findById(-1L));
-
-        String expectedMessage = "id must be a greater than 0";
-        String actualMessage = idLessThanZeroException.getMessage();
-
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    void findById_If_Article_Does_Not_Exists() {
-        given(repository.existsById(anyLong())).willReturn(false);
-
-        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.findById(1L));
-
-        String expectedMessage = "could not found article 1";
-        String actualMessage = articleNotFoundException.getMessage();
-
-        Assertions.assertEquals(expectedMessage, actualMessage);
-
-        verify(repository, times(1)).existsById(anyLong());
-    }
-
-    @Test
+    @DisplayName(("Get article by id"))
     void findById() {
         Article articleFromDb = new Article();
 
@@ -98,16 +76,34 @@ class ArticleServiceTest {
     }
 
     @Test
-    void deleteArticleById_If_Id_Less_Than_Zero() {
-        IdLessThanZeroException idLessThanZeroException = Assertions.assertThrows(IdLessThanZeroException.class, () -> service.deleteArticleById(-1L));
+    @DisplayName("get article by id if article is not found")
+    void findById_If_Article_Does_Not_Exists() {
+        given(repository.existsById(anyLong())).willReturn(false);
 
-        String expectedMessage = "id must be a greater than 0";
-        String actualMessage = idLessThanZeroException.getMessage();
+        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.findById(1L));
+
+        String expectedMessage = "could not found article 1";
+        String actualMessage = articleNotFoundException.getMessage();
 
         Assertions.assertEquals(expectedMessage, actualMessage);
+
+        verify(repository, times(1)).existsById(anyLong());
     }
 
     @Test
+    @DisplayName("Delete article")
+    void deleteArticleById() {
+        given(repository.existsById(anyLong())).willReturn(true);
+        willDoNothing().given(repository).deleteById(anyLong());
+
+        service.deleteArticleById(1L);
+
+        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Delete article if article is not found")
     void deleteArticleById_If_Article_Does_Not_Exists() {
         given(repository.existsById(anyLong())).willReturn(false);
 
@@ -122,17 +118,7 @@ class ArticleServiceTest {
     }
 
     @Test
-    void deleteArticleById() {
-        given(repository.existsById(anyLong())).willReturn(true);
-        willDoNothing().given(repository).deleteById(anyLong());
-
-        service.deleteArticleById(1L);
-
-        verify(repository, times(1)).existsById(anyLong());
-        verify(repository, times(1)).deleteById(anyLong());
-    }
-
-    @Test
+    @DisplayName("Add article")
     void addArticle() {
         Article article = new Article();
         ArticleDto articleDto = new ArticleDto();
@@ -151,12 +137,14 @@ class ArticleServiceTest {
     }
 
     @Test
+    @DisplayName("Update article")
     void updateArticle() {
         Article articleFromDb = new Article();
         articleFromDb.setTitle("test");
         ArticleDto articleDto = new ArticleDto();
         articleDto.setTitle("test1");
 
+        given(repository.existsById(anyLong())).willReturn(true);
         given(repository.getById(anyLong())).willReturn(articleFromDb);
         given(repository.save(articleFromDb)).willReturn(articleFromDb);
         given(modelMapper.map(articleFromDb, ArticleDto.class)).willReturn(articleDto);
@@ -167,8 +155,28 @@ class ArticleServiceTest {
         String actualTitle = updateArticle.getTitle();
         Assertions.assertEquals(expectedTitle, actualTitle);
 
+        verify(repository,times(1)).existsById(anyLong());
         verify(repository, times(1)).getById(anyLong());
         verify(repository, times(1)).save(any(Article.class));
         verify(modelMapper, times(1)).map(articleFromDb, ArticleDto.class);
+    }
+
+    @Test
+    @DisplayName("Update article if article is not found")
+    void updateArticle_If_Article_Is_Not_Found() {
+        ArticleDto articleDto = new ArticleDto();
+        articleDto.setTitle("test1");
+
+        given(repository.existsById(anyLong())).willReturn(false);
+
+        ArticleNotFoundException articleNotFoundException =
+                Assertions.assertThrows(ArticleNotFoundException.class, () -> service.updateArticle(1L, articleDto));
+
+        String expectedMessage = "could not found article 1";
+        String actualMessage = articleNotFoundException.getMessage();
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+
+        verify(repository, times(1)).existsById(anyLong());
     }
 }
