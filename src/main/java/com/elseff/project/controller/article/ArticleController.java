@@ -1,7 +1,6 @@
 package com.elseff.project.controller.article;
 
 import com.elseff.project.dto.article.ArticleDto;
-import com.elseff.project.exception.IdLessThanZeroException;
 import com.elseff.project.service.article.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +36,6 @@ public class ArticleController {
 
     @GetMapping("/{id}")
     public ArticleDto getSpecific(@PathVariable Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         return articleService.findById(id);
     }
 

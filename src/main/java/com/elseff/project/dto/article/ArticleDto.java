@@ -24,7 +24,7 @@ public class ArticleDto {
 
     @NotNull(message = "description shouldn't be a null")
     @NotEmpty(message = "description shouldn't be a empty")
-    @Size(min = 10, max = 10000, message = "title should be between 10 and 10000 characters")
+    @Size(min = 10, max = 10000, message = "description should be between 10 and 10000 characters")
     private String description;
 
     private String date;
