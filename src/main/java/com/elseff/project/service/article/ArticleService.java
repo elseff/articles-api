@@ -2,7 +2,6 @@ package com.elseff.project.service.article;
 
 import com.elseff.project.dto.article.ArticleDto;
 import com.elseff.project.entity.Article;
-import com.elseff.project.exception.IdLessThanZeroException;
 import com.elseff.project.exception.article.ArticleNotFoundException;
 import com.elseff.project.repository.ArticleRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +34,6 @@ public class ArticleService {
     }
 
     public ArticleDto findById(Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         if (repository.existsById(id)) {
             return modelMapper.map(repository.findById(id).get(), ArticleDto.class);
         } else {
@@ -46,9 +42,6 @@ public class ArticleService {
     }
 
     public void deleteArticleById(Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         if (repository.existsById(id)) {
             repository.deleteById(id);
         } else {
@@ -64,12 +57,16 @@ public class ArticleService {
     }
 
     public ArticleDto updateArticle(Long id, ArticleDto articleDto) {
-        Article articleFromDb = repository.getById(id);
-        if (articleDto.getTitle() != null) articleFromDb.setTitle(articleDto.getTitle());
-        if (articleDto.getDescription() != null) articleFromDb.setDescription(articleDto.getDescription());
-        if (articleDto.getDate() != null) articleFromDb.setDate(articleFromDb.getDate());
-        repository.save(articleFromDb);
-        return modelMapper.map(articleFromDb, ArticleDto.class);
+        if (repository.existsById(id)) {
+            Article articleFromDb = repository.getById(id);
+            if (articleDto.getTitle() != null) articleFromDb.setTitle(articleDto.getTitle());
+            if (articleDto.getDescription() != null) articleFromDb.setDescription(articleDto.getDescription());
+            if (articleDto.getDate() != null) articleFromDb.setDate(articleFromDb.getDate());
+            repository.save(articleFromDb);
+            return modelMapper.map(articleFromDb, ArticleDto.class);
+        } else {
+            throw new ArticleNotFoundException(id);
+        }
     }
 
 }

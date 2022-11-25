@@ -4,7 +4,6 @@ import com.elseff.project.dto.user.UserAllFieldsCanBeNullDto;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
 import com.elseff.project.entity.User;
-import com.elseff.project.exception.IdLessThanZeroException;
 import com.elseff.project.exception.user.UserNotFoundException;
 import com.elseff.project.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +29,6 @@ public class UserService {
     }
 
     public UserAllFieldsDto getUserById(Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         if (repository.existsById(id)) {
             return modelMapper.map(repository.findById(id).get(), UserAllFieldsDto.class);
         } else {
@@ -49,9 +45,6 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        if (id < 0) {
-            throw new IdLessThanZeroException();
-        }
         if (repository.existsById(id)) {
             repository.deleteById(id);
         } else {
@@ -60,16 +53,20 @@ public class UserService {
     }
 
     public UserAllFieldsDto updateUser(Long id, UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto) {
-        User userFromDb = repository.getById(id);
-        if (userAllFieldsCanBeNullDto.getFirstName() != null)
-            userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
-        if (userAllFieldsCanBeNullDto.getLastName() != null)
-            userFromDb.setLastName(userAllFieldsCanBeNullDto.getLastName());
-        if (userAllFieldsCanBeNullDto.getEmail() != null) userFromDb.setEmail(userAllFieldsCanBeNullDto.getEmail());
-        if (userAllFieldsCanBeNullDto.getCountry() != null)
-            userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
-        repository.save(userFromDb);
-        return modelMapper.map(userFromDb, UserAllFieldsDto.class);
+        if (repository.existsById(id)) {
+            User userFromDb = repository.getById(id);
+            if (userAllFieldsCanBeNullDto.getFirstName() != null)
+                userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
+            if (userAllFieldsCanBeNullDto.getLastName() != null)
+                userFromDb.setLastName(userAllFieldsCanBeNullDto.getLastName());
+            if (userAllFieldsCanBeNullDto.getEmail() != null) userFromDb.setEmail(userAllFieldsCanBeNullDto.getEmail());
+            if (userAllFieldsCanBeNullDto.getCountry() != null)
+                userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
+            repository.save(userFromDb);
+            return modelMapper.map(userFromDb, UserAllFieldsDto.class);
+        } else {
+            throw new UserNotFoundException(id);
+        }
     }
 
 }

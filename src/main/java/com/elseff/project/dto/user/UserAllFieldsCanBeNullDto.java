@@ -21,7 +21,7 @@ public class UserAllFieldsCanBeNullDto {
     private String firstName;
 
     @Pattern(regexp = "([A-Z][a-zA-Z]*)", message = "lastname should be valid")
-    @Size(min = 2, max = 40, message = "firstname size should be between 2 and 40")
+    @Size(min = 2, max = 40, message = "lastname size should be between 2 and 40")
     private String lastName;
 
     @Email(message = "email should be valid")
