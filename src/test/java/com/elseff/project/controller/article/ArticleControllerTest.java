@@ -24,9 +24,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -87,13 +87,13 @@ public class ArticleControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        List<ArticleDto> listArticles = this.objectMapper.readValue(response, new TypeReference<>() {
-        });
-        listArticles.forEach(a -> System.out.println(a.toString()));
-        Assertions.assertNotNull(listArticles);
+        List<ArticleDto> listArticles = this.objectMapper.readValue(response, new TypeReference<>() {});
 
-        if (listArticles.size() != 0)
-            Assertions.assertNotNull(listArticles.get(0));
+        int expectedListSize = 3;
+        int actualListSize = listArticles.size();
+
+        Assertions.assertNotNull(listArticles);
+        Assertions.assertEquals(expectedListSize,actualListSize);
     }
 
     @Test
@@ -186,11 +186,16 @@ public class ArticleControllerTest {
         List<Violation> violations = objectMapper.readValue(stringList, new TypeReference<>() {
         });
 
-        Set<String> expectedStringViolations = new HashSet<>();
-        expectedStringViolations.add("title should be between 10 and 120 characters");
-        expectedStringViolations.add("description should be between 10 and 10000 characters");
+        List<String> expectedStringViolations = new ArrayList<>(List.of(
+                "title should be between 10 and 120 characters",
+                "description should be between 10 and 10000 characters"
+        ));
+        expectedStringViolations.sort(Comparator.naturalOrder());
 
-        Set<String> actualStringViolations = violations.stream().map(Violation::getMessage).collect(Collectors.toSet());
+        List<String> actualStringViolations = violations.stream()
+                .map(Violation::getMessage)
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
 
         Assertions.assertEquals(expectedStringViolations, actualStringViolations);
     }
@@ -275,11 +280,16 @@ public class ArticleControllerTest {
         List<Violation> violations = objectMapper.readValue(stringList, new TypeReference<>() {
         });
 
-        Set<String> expectedStringViolations = new HashSet<>();
-        expectedStringViolations.add("title should be between 10 and 120 characters");
-        expectedStringViolations.add("description should be between 10 and 10000 characters");
+        List<String> expectedStringViolations = new ArrayList<>(List.of(
+                "title should be between 10 and 120 characters",
+                "description should be between 10 and 10000 characters"
+        ));
+        expectedStringViolations.sort(Comparator.naturalOrder());
 
-        Set<String> actualStringViolations = violations.stream().map(Violation::getMessage).collect(Collectors.toSet());
+        List<String> actualStringViolations = violations.stream()
+                .map(Violation::getMessage)
+                .sorted()
+                .collect(Collectors.toList());
 
         Assertions.assertEquals(expectedStringViolations, actualStringViolations);
     }
