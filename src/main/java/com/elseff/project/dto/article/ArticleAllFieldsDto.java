@@ -1,5 +1,6 @@
 package com.elseff.project.dto.article;
 
+import com.elseff.project.dto.user.UserDto;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import javax.validation.constraints.Size;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArticleDto {
+public class ArticleAllFieldsDto {
 
     private Long id;
 
@@ -23,4 +24,6 @@ public class ArticleDto {
     private String description;
 
     private String date;
+
+    private UserDto author;
 }

@@ -1,8 +1,10 @@
 package com.elseff.project.dto.user;
 
+import com.elseff.project.dto.article.ArticleDto;
 import lombok.*;
 
 import javax.validation.constraints.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -35,4 +37,6 @@ public class UserAllFieldsDto {
     @NotNull(message = "password shouldn't be a null")
     @Size(min = 4, message = "password size should be greater than 4")
     private String password;
+
+    private List<ArticleDto> articles;
 }

@@ -1,9 +1,12 @@
 package com.elseff.project.controller.article;
 
+import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
 import com.elseff.project.dto.validation.Violation;
 import com.elseff.project.entity.Article;
+import com.elseff.project.entity.User;
 import com.elseff.project.repository.ArticleRepository;
+import com.elseff.project.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -14,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -41,13 +47,16 @@ public class ArticleControllerTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private MockMvc mockMvc;
+    private ArticleRepository articleRepository;
 
     @Autowired
-    private ArticleRepository repository;
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     private final String endPoint = "/api/v1/articles";
 
@@ -60,24 +69,28 @@ public class ArticleControllerTest {
 
     @BeforeEach
     void setUp() {
-        repository.deleteAll();
+        userRepository.deleteAll();
+        userRepository.save(getUser());
+        articleRepository.deleteAll();
     }
 
     @Test
     @DisplayName("Context loads")
     public void contextLoads() {
+        Assertions.assertNotNull(articleRepository);
+        Assertions.assertNotNull(userRepository);
         Assertions.assertNotNull(objectMapper);
         Assertions.assertNotNull(mockMvc);
-        Assertions.assertNotNull(repository);
     }
 
     @Test
     @DisplayName("All Articles")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticles() throws Exception {
-        repository.save(new Article(null, "test article 1", "test", ""));
-        repository.save(new Article(null, "test article 2", "test", ""));
-        repository.save(new Article(null, "test article 3", "test", ""));
+        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+        articleRepository.save(getArticle(currentAuthenticatedUser));
+        articleRepository.save(getArticle(currentAuthenticatedUser));
+        articleRepository.save(getArticle(currentAuthenticatedUser));
 
         MockHttpServletRequestBuilder request = get(endPoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -87,21 +100,23 @@ public class ArticleControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        List<ArticleDto> listArticles = this.objectMapper.readValue(response, new TypeReference<>() {});
+        List<ArticleDto> listArticles = this.objectMapper.readValue(response, new TypeReference<>() {
+        });
 
         int expectedListSize = 3;
         int actualListSize = listArticles.size();
 
         Assertions.assertNotNull(listArticles);
-        Assertions.assertEquals(expectedListSize,actualListSize);
+        Assertions.assertEquals(expectedListSize, actualListSize);
     }
 
     @Test
     @DisplayName("Get article")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticleById() throws Exception {
-        Long savedArticleId = repository.save(new Article(null, "test article", "test", "")).getId();
-        String endPoint = this.endPoint + "/" + savedArticleId;
+        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         MockHttpServletRequestBuilder request = get(endPoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -121,8 +136,8 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Get article if article is not found")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticleById_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -136,13 +151,13 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Add article")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle() throws Exception {
         ArticleDto contentArticle = new ArticleDto(
                 null,
                 "test add new article title",
                 "test add new article description",
-                "");
+                null);
 
         String requestBody = objectMapper.writeValueAsString(contentArticle);
 
@@ -155,7 +170,7 @@ public class ArticleControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        ArticleDto responseArticle = objectMapper.readValue(response, ArticleDto.class);
+        ArticleAllFieldsDto responseArticle = objectMapper.readValue(response, ArticleAllFieldsDto.class);
 
         String expectedArticleTitle = "test add new article title";
         String actualArticleTitle = responseArticle.getTitle();
@@ -165,8 +180,8 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Add article if article is not valid")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle_If_Article_Is_Not_Valid() throws Exception {
         ArticleDto contentArticle = new ArticleDto(null, "test", "test", "");
 
@@ -202,10 +217,11 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Delete article")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle() throws Exception {
-        Long savedArticleId = repository.save(new Article(null, "test", "test", "")).getId();
-        String endPoint = this.endPoint + "/" + savedArticleId;
+        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         mockMvc.perform(delete(endPoint)).andExpect(status().isOk());
     }
@@ -226,10 +242,11 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Update article")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle() throws Exception {
-        Long savedArticleId = repository.save(new Article(null, "test", "test", "")).getId();
-        String endPoint = this.endPoint + "/" + savedArticleId;
+        User userFromDb = userRepository.findByEmail(getUser().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(userFromDb));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
 
@@ -256,11 +273,12 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Update article if article is not valid")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Article_Is_Not_Valid() throws Exception {
-        Long savedArticleId = repository.save(new Article(null, "test", "test", "")).getId();
-        String endPoint = this.endPoint + "/" + savedArticleId;
+        User userFromDb = userRepository.findByEmail(getUser().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(userFromDb));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleDto contentArticle = new ArticleDto(null, "test1", "test1", "");
 
@@ -296,7 +314,7 @@ public class ArticleControllerTest {
 
     @Test
     @WithMockUser(username = "test")
-    @DisplayName("Update article if article is not found")
+    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -311,5 +329,20 @@ public class ArticleControllerTest {
 
         mockMvc.perform(request)
                 .andExpect(status().isNotFound());
+    }
+
+    private Article getArticle(User userFromDb) {
+        return new Article(null, "test article", "test", "", userFromDb);
+    }
+
+    private User getUser() {
+        return new User(1L,
+                "test",
+                "test",
+                "test@test.com",
+                "test",
+                "test",
+                Set.of(),
+                List.of());
     }
 }

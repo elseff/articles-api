@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -273,7 +274,7 @@ class AuthControllerTest {
                 "TestLastName",
                 "test@test.com",
                 "Test",
-                "root"
+                "root", null
         );
     }
 
@@ -285,8 +286,8 @@ class AuthControllerTest {
                 "test@test.com",
                 "test",
                 passwordEncoder.encode("root"),
-                null,
-                true);
+                Set.of(),
+                List.of());
     }
 
     private UserAllFieldsDto getNotValidUserAllFieldsDto() {
@@ -296,7 +297,8 @@ class AuthControllerTest {
                 "test",
                 "test",
                 "test",
-                "t"
+                "t",
+                List.of()
         );
     }
 

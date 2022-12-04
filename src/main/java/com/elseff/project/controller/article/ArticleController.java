@@ -1,6 +1,8 @@
 package com.elseff.project.controller.article;
 
+import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
+import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
 import com.elseff.project.service.article.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +32,12 @@ public class ArticleController {
     }
 
     @PostMapping
-    public ArticleDto addArticle(@RequestBody @Valid ArticleDto articleDto) {
+    public ArticleAllFieldsDto addArticle(@RequestBody @Valid ArticleDto articleDto) {
         return articleService.addArticle(articleDto);
     }
 
     @GetMapping("/{id}")
-    public ArticleDto getSpecific(@PathVariable Long id) {
+    public ArticleAllFieldsDto getSpecific(@PathVariable Long id) {
         return articleService.findById(id);
     }
 
@@ -45,7 +47,8 @@ public class ArticleController {
     }
 
     @PatchMapping("/{id}")
-    public ArticleDto updateArticle(@RequestBody @Valid ArticleDto articleDto, @PathVariable Long id) {
+    public ArticleDto updateArticle(@RequestBody @Valid ArticleFieldsCanBeNullDto articleDto,
+                                    @PathVariable Long id) {
         return articleService.updateArticle(id, articleDto);
     }
 }
