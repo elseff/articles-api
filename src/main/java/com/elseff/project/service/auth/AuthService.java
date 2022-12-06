@@ -5,12 +5,14 @@ import com.elseff.project.dto.auth.AuthResponse;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.entity.User;
 import com.elseff.project.enums.Role;
-import com.elseff.project.exception.AuthenticationException;
+import com.elseff.project.exception.auth.AuthenticationException;
 import com.elseff.project.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -41,7 +43,6 @@ public class AuthService {
 
         User user = modelMapper.map(userAllFieldsDto, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setActive(true);
         user.setRoles(new HashSet<>());
         user.getRoles().add(Role.USER);
         User userFromDb = repository.save(user);
@@ -49,7 +50,7 @@ public class AuthService {
                 userAllFieldsDto.getEmail(), userAllFieldsDto.getPassword()).getBytes(StandardCharsets.UTF_8));
         log.info("User with email {} has been successfully registered", userFromDb.getEmail());
 
-        return new AuthResponse(userFromDb.getId(),userAllFieldsDto.getEmail(),token);
+        return new AuthResponse(userFromDb.getId(), userAllFieldsDto.getEmail(), token);
     }
 
     public AuthResponse login(@Valid AuthRequest authRequest) {
@@ -65,8 +66,16 @@ public class AuthService {
                 String token = Base64.encodeBase64String(String.format("%s:%s",
                         authRequest.getEmail(), authRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
                 log.info("User with email {} has been successfully login", authRequest.getEmail());
-                return new AuthResponse(userFromDb.getId(),authRequest.getEmail(),token);
+                return new AuthResponse(userFromDb.getId(), authRequest.getEmail(), token);
             }
         }
+    }
+
+    public static User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null)
+            return null;
+        User user = (User) authentication.getPrincipal();
+        return user;
     }
 }

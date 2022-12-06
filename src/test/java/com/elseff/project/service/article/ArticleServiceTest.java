@@ -1,6 +1,8 @@
 package com.elseff.project.service.article;
 
+import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
+import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
 import com.elseff.project.entity.Article;
 import com.elseff.project.exception.article.ArticleNotFoundException;
 import com.elseff.project.repository.ArticleRepository;
@@ -21,8 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class ArticleServiceTest {
 
@@ -57,6 +58,7 @@ class ArticleServiceTest {
         Assertions.assertEquals(expectedListSize, actualListSize);
 
         verify(repository, times(1)).findAll();
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -66,9 +68,9 @@ class ArticleServiceTest {
 
         given(repository.existsById(anyLong())).willReturn(true);
         given(repository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
-        given(modelMapper.map(articleFromDb, ArticleDto.class)).willReturn(new ArticleDto());
+        given(modelMapper.map(articleFromDb, ArticleAllFieldsDto.class)).willReturn(new ArticleAllFieldsDto());
 
-        ArticleDto article = service.findById(1L);
+        ArticleAllFieldsDto article = service.findById(1L);
         Assertions.assertNotNull(article);
 
         verify(repository, times(1)).existsById(anyLong());
@@ -122,18 +124,19 @@ class ArticleServiceTest {
     void addArticle() {
         Article article = new Article();
         ArticleDto articleDto = new ArticleDto();
+        ArticleAllFieldsDto articleAllFieldsDto = new ArticleAllFieldsDto();
 
         given(repository.save(any(Article.class))).willReturn(article);
         given(modelMapper.map(articleDto, Article.class)).willReturn(article);
-        given(modelMapper.map(article, ArticleDto.class)).willReturn(articleDto);
+        given(modelMapper.map(article, ArticleAllFieldsDto.class)).willReturn(articleAllFieldsDto);
 
-        ArticleDto addedArticle = service.addArticle(articleDto);
+        ArticleAllFieldsDto addedArticle = service.addArticle(articleDto);
 
         Assertions.assertNotNull(addedArticle);
 
         verify(repository, times(1)).save(any(Article.class));
         verify(modelMapper, times(1)).map(articleDto, Article.class);
-        verify(modelMapper, times(1)).map(article, ArticleDto.class);
+        verify(modelMapper, times(1)).map(article, ArticleAllFieldsDto.class);
     }
 
     @Test
@@ -141,21 +144,25 @@ class ArticleServiceTest {
     void updateArticle() {
         Article articleFromDb = new Article();
         articleFromDb.setTitle("test");
+
         ArticleDto articleDto = new ArticleDto();
         articleDto.setTitle("test1");
+
+        ArticleFieldsCanBeNullDto articleFieldsCanBeNullDto = new ArticleFieldsCanBeNullDto();
+        articleFieldsCanBeNullDto.setTitle("test1");
 
         given(repository.existsById(anyLong())).willReturn(true);
         given(repository.getById(anyLong())).willReturn(articleFromDb);
         given(repository.save(articleFromDb)).willReturn(articleFromDb);
         given(modelMapper.map(articleFromDb, ArticleDto.class)).willReturn(articleDto);
 
-        ArticleDto updateArticle = service.updateArticle(1L, articleDto);
+        ArticleDto updatedArticle = service.updateArticle(1L, articleFieldsCanBeNullDto);
 
         String expectedTitle = "test1";
-        String actualTitle = updateArticle.getTitle();
+        String actualTitle = updatedArticle.getTitle();
         Assertions.assertEquals(expectedTitle, actualTitle);
 
-        verify(repository,times(1)).existsById(anyLong());
+        verify(repository, times(1)).existsById(anyLong());
         verify(repository, times(1)).getById(anyLong());
         verify(repository, times(1)).save(any(Article.class));
         verify(modelMapper, times(1)).map(articleFromDb, ArticleDto.class);
@@ -164,7 +171,7 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Update article if article is not found")
     void updateArticle_If_Article_Is_Not_Found() {
-        ArticleDto articleDto = new ArticleDto();
+        ArticleFieldsCanBeNullDto articleDto = new ArticleFieldsCanBeNullDto();
         articleDto.setTitle("test1");
 
         given(repository.existsById(anyLong())).willReturn(false);

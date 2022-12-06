@@ -26,4 +26,8 @@ public class Article {
 
     @Column(name = "date", nullable = false)
     private String date;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "author_id", nullable = false, updatable = false)
+    private User author;
 }

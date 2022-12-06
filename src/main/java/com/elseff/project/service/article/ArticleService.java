@@ -1,9 +1,13 @@
 package com.elseff.project.service.article;
 
+import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
+import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
 import com.elseff.project.entity.Article;
+import com.elseff.project.entity.User;
 import com.elseff.project.exception.article.ArticleNotFoundException;
 import com.elseff.project.repository.ArticleRepository;
+import com.elseff.project.service.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -33,9 +37,9 @@ public class ArticleService {
                 .collect(Collectors.toList());
     }
 
-    public ArticleDto findById(Long id) {
+    public ArticleAllFieldsDto findById(Long id) {
         if (repository.existsById(id)) {
-            return modelMapper.map(repository.findById(id).get(), ArticleDto.class);
+            return modelMapper.map(repository.findById(id).get(), ArticleAllFieldsDto.class);
         } else {
             throw new ArticleNotFoundException(id);
         }
@@ -49,20 +53,23 @@ public class ArticleService {
         }
     }
 
-    public ArticleDto addArticle(ArticleDto articleDto) {
+    public ArticleAllFieldsDto addArticle(ArticleDto articleDto) {
+        User authUser = AuthService.getCurrentUser();
         Article article = modelMapper.map(articleDto, Article.class);
         article.setDate(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new Date()));
+        article.setAuthor(authUser);
         Article articleFromDb = repository.save(article);
-        return modelMapper.map(articleFromDb, ArticleDto.class);
+
+        return modelMapper.map(articleFromDb, ArticleAllFieldsDto.class);
     }
 
-    public ArticleDto updateArticle(Long id, ArticleDto articleDto) {
+    public ArticleDto updateArticle(Long id, ArticleFieldsCanBeNullDto articleDto) {
         if (repository.existsById(id)) {
             Article articleFromDb = repository.getById(id);
             if (articleDto.getTitle() != null) articleFromDb.setTitle(articleDto.getTitle());
             if (articleDto.getDescription() != null) articleFromDb.setDescription(articleDto.getDescription());
-            if (articleDto.getDate() != null) articleFromDb.setDate(articleFromDb.getDate());
             repository.save(articleFromDb);
+
             return modelMapper.map(articleFromDb, ArticleDto.class);
         } else {
             throw new ArticleNotFoundException(id);
