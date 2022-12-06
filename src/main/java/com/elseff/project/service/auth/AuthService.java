@@ -5,7 +5,7 @@ import com.elseff.project.dto.auth.AuthResponse;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.entity.User;
 import com.elseff.project.enums.Role;
-import com.elseff.project.exception.AuthenticationException;
+import com.elseff.project.exception.auth.AuthenticationException;
 import com.elseff.project.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.codec.binary.Base64;

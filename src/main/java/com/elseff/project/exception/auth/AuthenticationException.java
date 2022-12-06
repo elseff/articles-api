@@ -1,4 +1,4 @@
-package com.elseff.project.exception;
+package com.elseff.project.exception.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

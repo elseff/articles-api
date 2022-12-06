@@ -4,7 +4,7 @@ import com.elseff.project.dto.auth.AuthRequest;
 import com.elseff.project.dto.auth.AuthResponse;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.entity.User;
-import com.elseff.project.exception.AuthenticationException;
+import com.elseff.project.exception.auth.AuthenticationException;
 import com.elseff.project.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
