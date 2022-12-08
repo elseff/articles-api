@@ -167,7 +167,7 @@ public class ArticleControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8);
 
         String response = mockMvc.perform(request)
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
         ArticleAllFieldsDto responseArticle = objectMapper.readValue(response, ArticleAllFieldsDto.class);
@@ -223,7 +223,7 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        mockMvc.perform(delete(endPoint)).andExpect(status().isNoContent());
+        mockMvc.perform(delete(endPoint)).andExpect(status().isOk());
     }
 
     @Test

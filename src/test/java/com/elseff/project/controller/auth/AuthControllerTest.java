@@ -93,7 +93,7 @@ class AuthControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8);
 
         String response = mockMvc.perform(request)
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
