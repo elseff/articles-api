@@ -153,7 +153,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(request)
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         List<UserDto> users = objectMapper.readValue(
                 mockMvc.perform(get(this.endPoint))
