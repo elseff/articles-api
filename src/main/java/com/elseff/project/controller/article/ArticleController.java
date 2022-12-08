@@ -6,7 +6,6 @@ import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
 import com.elseff.project.service.article.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,31 +27,26 @@ public class ArticleController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<ArticleDto> getArticles() {
         return articleService.getAllArticles();
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ArticleAllFieldsDto addArticle(@RequestBody @Valid ArticleDto articleDto) {
         return articleService.addArticle(articleDto);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ArticleAllFieldsDto getSpecific(@PathVariable Long id) {
         return articleService.findById(id);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteArticle(@PathVariable Long id) {
         articleService.deleteArticleById(id);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ArticleDto updateArticle(@RequestBody @Valid ArticleFieldsCanBeNullDto articleDto,
                                     @PathVariable Long id) {
         return articleService.updateArticle(id, articleDto);
