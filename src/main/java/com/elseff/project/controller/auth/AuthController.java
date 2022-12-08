@@ -6,7 +6,6 @@ import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.service.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,13 +26,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
     public AuthResponse register(@RequestBody @Valid UserAllFieldsDto userAllFieldsDto) {
         return authService.register(userAllFieldsDto);
     }
 
     @PostMapping("/login")
-    @ResponseStatus(HttpStatus.OK)
     public AuthResponse login(@RequestBody @Valid AuthRequest authRequest){
         return authService.login(authRequest);
     }
