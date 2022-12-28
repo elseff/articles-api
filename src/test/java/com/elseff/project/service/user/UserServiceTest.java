@@ -4,27 +4,29 @@ import com.elseff.project.dto.user.UserAllFieldsCanBeNullDto;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
 import com.elseff.project.entity.User;
+import com.elseff.project.enums.Role;
+import com.elseff.project.exception.user.SomeoneElseUserProfileException;
 import com.elseff.project.exception.user.UserNotFoundException;
 import com.elseff.project.repository.UserRepository;
+import com.elseff.project.service.auth.AuthService;
+import lombok.Cleanup;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.modelmapper.ModelMapper;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
@@ -59,6 +61,7 @@ class UserServiceTest {
         Assertions.assertEquals(expectedListSize, actualListSize);
 
         verify(repository, times(1)).findAll();
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -66,7 +69,6 @@ class UserServiceTest {
     void getUserById() {
         User userFromDb = new User();
 
-        given(repository.existsById(anyLong())).willReturn(true);
         given(repository.findById(anyLong())).willReturn(Optional.of(userFromDb));
         given(modelMapper.map(userFromDb, UserAllFieldsDto.class)).willReturn(new UserAllFieldsDto());
 
@@ -74,14 +76,16 @@ class UserServiceTest {
 
         Assertions.assertNotNull(user);
 
-        verify(repository, times(1)).existsById(anyLong());
         verify(repository, times(1)).findById(anyLong());
+        verify(modelMapper, times(1)).map(userFromDb, UserAllFieldsDto.class);
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(modelMapper);
     }
 
     @Test
     @DisplayName("Get user by id if user is not found")
     void getUserById_When_User_Does_Not_Exists() {
-        given(repository.existsById(anyLong())).willReturn(false);
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         UserNotFoundException exception = Assertions.assertThrows(UserNotFoundException.class, () ->
                 service.getUserById(5L));
@@ -91,25 +95,39 @@ class UserServiceTest {
 
         Assertions.assertTrue(actualMessage.contains(expectedMessage));
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("Delete user")
-    void deleteUser() {
-        given(repository.existsById(anyLong())).willReturn(true);
+    @DisplayName("Delete user by admin")
+    void deleteUser_If_Current_User_Is_Admin() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User userEntity = getUserEntity();
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userEntity);
+        given(repository.findById(anyLong())).willReturn(Optional.of(getDifferentUserEntity()));
         willDoNothing().given(repository).deleteById(anyLong());
 
-        service.deleteUser(anyLong());
+        service.deleteUser(userEntity.getId());
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
         verify(repository, times(1)).deleteById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Delete user if user is not found")
     void deleteUser_If_User_Not_Exists() {
-        given(repository.existsById(anyLong())).willReturn(false);
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User userEntity = getUserEntity();
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userEntity);
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         UserNotFoundException exception = Assertions.assertThrows(UserNotFoundException.class, () ->
                 service.deleteUser(5L));
@@ -119,23 +137,26 @@ class UserServiceTest {
 
         Assertions.assertTrue(actualMessage.contains(expectedMessage));
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Update user")
     void updateUser() {
-        User userFromDb = new User();
-        userFromDb.setFirstName("test");
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User userEntity = getUserEntity();
         UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
         userAllFieldsCanBeNullDto.setFirstName("test1");
         UserAllFieldsDto userAllFieldsDto = new UserAllFieldsDto();
         userAllFieldsDto.setFirstName("test1");
 
-        given(repository.existsById(anyLong())).willReturn(true);
-        given(repository.getById(anyLong())).willReturn(userFromDb);
-        given(repository.save(any(User.class))).willReturn(userFromDb);
-        given(modelMapper.map(userFromDb, UserAllFieldsDto.class)).willReturn(userAllFieldsDto);
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userEntity);
+        given(repository.findById(anyLong())).willReturn(Optional.of(userEntity));
+        given(modelMapper.map(userEntity, UserAllFieldsDto.class)).willReturn(userAllFieldsDto);
 
         UserAllFieldsDto updatedUser = service.updateUser(1L, userAllFieldsCanBeNullDto);
 
@@ -144,19 +165,52 @@ class UserServiceTest {
 
         Assertions.assertEquals(expectedFirstName, actualFirstName);
 
-        verify(repository,times(1)).existsById(anyLong());
-        verify(repository, times(1)).getById(anyLong());
-        verify(repository, times(1)).save(any(User.class));
-        verify(modelMapper, times(1)).map(any(), any());
+        verify(repository, times(1)).findById(anyLong());
+        verify(repository, times(1)).save(userEntity);
+        verify(modelMapper, times(1)).map(userEntity, UserAllFieldsDto.class);
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(modelMapper);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Update user if profile is someone else's")
+    void updateUser_If_Someone_Else_Profile() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User userEntity = getUserEntity();
+        UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
+        userAllFieldsCanBeNullDto.setFirstName("testt");
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userEntity);
+        given(repository.findById(anyLong())).willReturn(Optional.of(getDifferentUserEntity()));
+
+        SomeoneElseUserProfileException exception = Assertions.assertThrows(SomeoneElseUserProfileException.class,
+                () -> service.updateUser(1L, userAllFieldsCanBeNullDto));
+
+        String expectedMessage = "It's someone else's profile. You can't modify him";
+        String actualMessage = exception.getMessage();
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Update user if user is not found")
-    void updateArticle_If_Article_Is_Not_Found() {
+    void updateUser_If_User_Is_Not_Found() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User userEntity = getUserEntity();
         UserAllFieldsCanBeNullDto userDto = new UserAllFieldsCanBeNullDto();
         userDto.setFirstName("test1");
 
-        given(repository.existsById(anyLong())).willReturn(false);
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userEntity);
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         UserNotFoundException articleNotFoundException =
                 Assertions.assertThrows(UserNotFoundException.class, () -> service.updateUser(1L, userDto));
@@ -166,6 +220,39 @@ class UserServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
+    @NotNull
+    private User getUserEntity() {
+        User value = new User(
+                1L,
+                "test",
+                "test",
+                "test@test.com",
+                "test",
+                "test",
+                Set.of(Role.USER, Role.ADMIN),
+                List.of()
+        );
+        return value;
+    }
+
+    @NotNull
+    private User getDifferentUserEntity() {
+        User value = new User(
+                2L,
+                "testt",
+                "testt",
+                "test1@test.com",
+                "testt",
+                "testt",
+                Set.of(Role.USER),
+                List.of()
+        );
+        return value;
     }
 }

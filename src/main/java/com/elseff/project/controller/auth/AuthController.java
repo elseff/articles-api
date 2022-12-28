@@ -34,7 +34,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponse login(@RequestBody @Valid AuthRequest authRequest){
+    public AuthResponse login(@RequestBody @Valid AuthRequest authRequest) {
         return authService.login(authRequest);
     }
 }

@@ -58,7 +58,7 @@ public class AuthService {
             log.warn("User with email {} is not found", authRequest.getEmail());
             throw new AuthenticationException("User with email " + authRequest.getEmail() + " is not found");
         } else {
-            User userFromDb = repository.findByEmail(authRequest.getEmail());
+            User userFromDb = repository.getByEmail(authRequest.getEmail());
             if (!passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())) {
                 log.warn("Incorrect password");
                 throw new AuthenticationException("Incorrect password");
