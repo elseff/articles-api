@@ -5,6 +5,7 @@ import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
 import com.elseff.project.dto.validation.Violation;
 import com.elseff.project.entity.User;
+import com.elseff.project.enums.Role;
 import com.elseff.project.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,7 +34,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -69,6 +70,8 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         repository.deleteAll();
+        repository.save(getUser());
+        repository.save(getAdmin());
     }
 
     @Test
@@ -81,10 +84,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("Get all users")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getAllUsers() throws Exception {
-        IntStream.range(0, 5).forEach(value -> repository.save(getUserEntity()));
-
         MockHttpServletRequestBuilder request = get(endPoint)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .contentType(MediaType.APPLICATION_JSON);
@@ -96,19 +97,17 @@ class UserControllerTest {
         List<User> users = objectMapper.readValue(response, new TypeReference<>() {
         });
 
-        int expectedListSize = 5;
+        int expectedListSize = 2;
         int actualListSize = users.size();
 
         Assertions.assertEquals(expectedListSize, actualListSize);
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Get specific user")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getSpecific() throws Exception {
-        User userEntity = getUserEntity();
-        User userFromDb = repository.save(userEntity);
-
+        User userFromDb = repository.getByEmail("user@user.com");
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = get(endPoint)
@@ -121,15 +120,15 @@ class UserControllerTest {
 
         UserAllFieldsDto userAllFieldsDto = objectMapper.readValue(response, UserAllFieldsDto.class);
 
-        String expectedUserEmail = userEntity.getEmail();
+        String expectedUserEmail = userFromDb.getEmail();
         String actualUserEmail = userAllFieldsDto.getEmail();
 
         Assertions.assertEquals(expectedUserEmail, actualUserEmail);
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Get specific if user is not found")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getSpecific_If_User_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -142,10 +141,10 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Delete user")
-    @WithMockUser(username = "test")
-    void deleteUser() throws Exception {
-        User userFromDb = repository.save(getUserEntity());
+    @DisplayName("Delete user by admin")
+    @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteUser_If_Current_User_Is_Admin() throws Exception {
+        User userFromDb = repository.getByEmail("user@user.com");
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -160,16 +159,63 @@ class UserControllerTest {
                         .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
                 new TypeReference<>() {
                 });
-
-        int expectedListSize = 0;
+        //because there are 2 users in the database, after we delete, there should be one left
+        int expectedListSize = 1;
         int actualListSize = users.size();
 
         Assertions.assertEquals(expectedListSize, actualListSize);
     }
 
     @Test
-    @WithMockUser(username = "test")
+    @DisplayName("Delete user by user")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteUser_By_User() throws Exception {
+        User userFromDb = repository.getByEmail("user@user.com");
+        String endPoint = this.endPoint + "/" + userFromDb.getId();
+
+        MockHttpServletRequestBuilder request = delete(endPoint)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(request)
+                .andExpect(status().isNoContent());
+
+        List<UserDto> users = objectMapper.readValue(
+                mockMvc.perform(get(this.endPoint))
+                        .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
+                new TypeReference<>() {
+                });
+        //because there are 2 users in the database, after we delete, there should be one left
+        int expectedListSize = 1;
+        int actualListSize = users.size();
+
+        Assertions.assertEquals(expectedListSize, actualListSize);
+    }
+
+    @Test
+    @DisplayName("Delete user if someone else's profile")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteUser_If_Someone_Else_Profile() throws Exception {
+        User userFromDb = repository.getByEmail("admin@admin.com");
+        String endPoint = this.endPoint + "/" + userFromDb.getId();
+
+        MockHttpServletRequestBuilder request = delete(endPoint)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        Exception exception = mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+
+        String expectedMessage = "It's someone else's profile. You can't modify him";
+        String actualMessage = exception != null ? exception.getMessage() : "";
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
     @DisplayName("Delete user if user is not found")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_If_User_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -183,9 +229,9 @@ class UserControllerTest {
 
     @Test
     @DisplayName("Update user")
-    @WithMockUser(username = "test")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser() throws Exception {
-        User userFromDb = repository.save(getUserEntity());
+        User userFromDb = repository.getByEmail("user@user.com");
         UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
 
@@ -212,8 +258,8 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Update user if user is not found")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_User_Not_Found() throws Exception {
         UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
@@ -224,16 +270,15 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8);
 
-
         mockMvc.perform(request)
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(username = "test")
     @DisplayName("Update user if user is not valid")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_User_Is_Not_Valid() throws Exception {
-        User userFromDb = repository.save(getUserEntity());
+        User userFromDb = repository.getByEmail("user@user.com");
         UserAllFieldsCanBeNullDto updateUser = getNotValidUserAllFieldsCanBeNullBto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
 
@@ -267,17 +312,51 @@ class UserControllerTest {
         Assertions.assertEquals(expectedStringViolations, actualStringViolations);
     }
 
-    private User getUserEntity() {
-        return new User(
-                null,
+    @Test
+    @DisplayName("Update user if it's someone else's profile")
+    @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void updateUser_If_Someone_Else_Profile() throws Exception {
+        User userFromDb = repository.getByEmail("user@user.com");
+        UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
+        String requestBody = objectMapper.writeValueAsString(updateUser);
+
+        String endPoint = this.endPoint + "/" + userFromDb.getId();
+
+        MockHttpServletRequestBuilder request = patch(endPoint)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8);
+
+        Exception exception = mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+
+        String expectedMessage = "It's someone else's profile. You can't modify him";
+        String actualMessage = exception != null ? exception.getMessage() : "";
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+    }
+
+    private User getUser() {
+        return new User(1L,
+                "user",
+                "user",
+                "user@user.com",
                 "test",
                 "test",
-                "test@test.com",
+                Set.of(Role.USER),
+                List.of());
+    }
+
+    private User getAdmin() {
+        return new User(2L,
+                "admin",
+                "admin",
+                "admin@admin.com",
                 "test",
-                passwordEncoder.encode("test"),
-                Set.of(),
-                List.of()
-        );
+                "test",
+                Set.of(Role.USER, Role.ADMIN),
+                List.of());
     }
 
     private UserAllFieldsCanBeNullDto getUserAllFieldsCanBeNullDto() {

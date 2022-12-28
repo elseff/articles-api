@@ -4,14 +4,18 @@ import com.elseff.project.dto.user.UserAllFieldsCanBeNullDto;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.dto.user.UserDto;
 import com.elseff.project.entity.User;
+import com.elseff.project.enums.Role;
+import com.elseff.project.exception.user.SomeoneElseUserProfileException;
 import com.elseff.project.exception.user.UserNotFoundException;
 import com.elseff.project.repository.UserRepository;
+import com.elseff.project.service.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,11 +33,8 @@ public class UserService {
     }
 
     public UserAllFieldsDto getUserById(Long id) {
-        if (repository.existsById(id)) {
-            return modelMapper.map(repository.findById(id).get(), UserAllFieldsDto.class);
-        } else {
-            throw new UserNotFoundException(id);
-        }
+        return modelMapper.map(repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id)), UserAllFieldsDto.class);
     }
 
 
@@ -45,16 +46,29 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        if (repository.existsById(id)) {
+        User currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+
+        User userFromDb = repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        if (currentUser.getRoles().contains(Role.ADMIN)) {
             repository.deleteById(id);
+            log.info("delete user {} by admin {}", userFromDb.getEmail(), currentUser.getEmail());
         } else {
-            throw new UserNotFoundException(id);
+            if (userFromDb.equals(currentUser)) {
+                repository.deleteById(id);
+                log.info("delete user profile {}", userFromDb.getEmail());
+            } else
+                throw new SomeoneElseUserProfileException();
         }
     }
 
     public UserAllFieldsDto updateUser(Long id, UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto) {
-        if (repository.existsById(id)) {
-            User userFromDb = repository.getById(id);
+        User currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+
+        User userFromDb = repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        if (userFromDb.equals(currentUser)) {
             if (userAllFieldsCanBeNullDto.getFirstName() != null)
                 userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
             if (userAllFieldsCanBeNullDto.getLastName() != null)
@@ -63,10 +77,10 @@ public class UserService {
             if (userAllFieldsCanBeNullDto.getCountry() != null)
                 userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
             repository.save(userFromDb);
+            log.info("updated user profile {}", userFromDb.getEmail());
             return modelMapper.map(userFromDb, UserAllFieldsDto.class);
-        } else {
-            throw new UserNotFoundException(id);
-        }
+        } else
+            throw new SomeoneElseUserProfileException();
     }
 
 }

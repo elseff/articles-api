@@ -17,8 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
 
@@ -53,6 +52,7 @@ class AuthServiceTest {
         Assertions.assertTrue(actualMessage.contains(expectedMessage));
 
         verify(repository, times(1)).existsByEmail(anyString());
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -80,6 +80,9 @@ class AuthServiceTest {
         verify(modelMapper, times(1)).map(userAllFieldsDto, User.class);
         verify(passwordEncoder, times(1)).encode(userAllFieldsDto.getPassword());
         verify(repository, times(1)).save(user);
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(modelMapper);
+        verifyNoMoreInteractions(passwordEncoder);
     }
 
     @Test
@@ -97,6 +100,7 @@ class AuthServiceTest {
         Assertions.assertEquals(expectedMessage, actualMessage);
 
         verify(repository, times(1)).existsByEmail(anyString());
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -106,7 +110,7 @@ class AuthServiceTest {
         String email = userFromDb.getEmail();
 
         given(repository.existsByEmail(email)).willReturn(true);
-        given(repository.findByEmail(email)).willReturn(userFromDb);
+        given(repository.getByEmail(email)).willReturn(userFromDb);
         given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(false);
 
         AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.login(authRequest));
@@ -117,8 +121,10 @@ class AuthServiceTest {
         Assertions.assertEquals(expectedMessage, actualMessage);
 
         verify(repository, times(1)).existsByEmail(email);
-        verify(repository, times(1)).findByEmail(email);
+        verify(repository, times(1)).getByEmail(email);
         verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(passwordEncoder);
     }
 
     @Test
@@ -128,7 +134,7 @@ class AuthServiceTest {
         String email = userFromDb.getEmail();
 
         given(repository.existsByEmail(email)).willReturn(true);
-        given(repository.findByEmail(email)).willReturn(userFromDb);
+        given(repository.getByEmail(email)).willReturn(userFromDb);
         given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(true);
 
         AuthResponse login = service.login(authRequest);
@@ -140,8 +146,10 @@ class AuthServiceTest {
         Assertions.assertEquals(expectedEmail, actualEmail);
 
         verify(repository, times(1)).existsByEmail(email);
-        verify(repository, times(1)).findByEmail(email);
+        verify(repository, times(1)).getByEmail(email);
         verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(passwordEncoder);
     }
 
     private User getUserFromDb() {

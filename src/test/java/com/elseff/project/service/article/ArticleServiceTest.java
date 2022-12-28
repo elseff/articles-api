@@ -4,20 +4,25 @@ import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
 import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
 import com.elseff.project.entity.Article;
+import com.elseff.project.entity.User;
+import com.elseff.project.enums.Role;
 import com.elseff.project.exception.article.ArticleNotFoundException;
+import com.elseff.project.exception.article.SomeoneElseArticleException;
 import com.elseff.project.repository.ArticleRepository;
+import com.elseff.project.service.auth.AuthService;
+import lombok.Cleanup;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.modelmapper.ModelMapper;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -62,25 +67,24 @@ class ArticleServiceTest {
     }
 
     @Test
-    @DisplayName(("Get article by id"))
+    @DisplayName("Get article")
     void findById() {
         Article articleFromDb = new Article();
 
-        given(repository.existsById(anyLong())).willReturn(true);
         given(repository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
         given(modelMapper.map(articleFromDb, ArticleAllFieldsDto.class)).willReturn(new ArticleAllFieldsDto());
 
         ArticleAllFieldsDto article = service.findById(1L);
         Assertions.assertNotNull(article);
 
-        verify(repository, times(1)).existsById(anyLong());
         verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("get article by id if article is not found")
-    void findById_If_Article_Does_Not_Exists() {
-        given(repository.existsById(anyLong())).willReturn(false);
+    @DisplayName("Get article if article is not found")
+    void findById_If_Article_Is_Not_Found() {
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.findById(1L));
 
@@ -89,25 +93,63 @@ class ArticleServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("Delete article")
-    void deleteArticleById() {
-        given(repository.existsById(anyLong())).willReturn(true);
+    @DisplayName("Delete article by admin")
+    void deleteArticleById_If_Current_User_Is_Admin() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
+
+        given(repository.findById(anyLong())).willReturn(Optional.of(new Article(1L, "test", "test", null, user)));
         willDoNothing().given(repository).deleteById(anyLong());
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
 
         service.deleteArticleById(1L);
 
-        verify(repository, times(1)).existsById(anyLong());
         verify(repository, times(1)).deleteById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Delete article if is it someone else's")
+    void deleteArticleById_If_Someone_Else_Article() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
+        user.setRoles(Set.of(Role.USER));
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(repository.findById(anyLong())).willReturn(Optional.of(new Article(1L, "test", "test", null, getDifferentUserEntity())));
+
+        SomeoneElseArticleException exception = Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.deleteArticleById(1L));
+
+        String expectedMessage = "It's someone else's article. You can't modify her";
+        String actualMessage = exception.getMessage();
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Delete article if article is not found")
     void deleteArticleById_If_Article_Does_Not_Exists() {
-        given(repository.existsById(anyLong())).willReturn(false);
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.deleteArticleById(1L));
 
@@ -116,16 +158,22 @@ class ArticleServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Add article")
     void addArticle() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         Article article = new Article();
         ArticleDto articleDto = new ArticleDto();
         ArticleAllFieldsDto articleAllFieldsDto = new ArticleAllFieldsDto();
 
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(getUserEntity());
         given(repository.save(any(Article.class))).willReturn(article);
         given(modelMapper.map(articleDto, Article.class)).willReturn(article);
         given(modelMapper.map(article, ArticleAllFieldsDto.class)).willReturn(articleAllFieldsDto);
@@ -137,22 +185,28 @@ class ArticleServiceTest {
         verify(repository, times(1)).save(any(Article.class));
         verify(modelMapper, times(1)).map(articleDto, Article.class);
         verify(modelMapper, times(1)).map(article, ArticleAllFieldsDto.class);
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(modelMapper);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Update article")
     void updateArticle() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
         Article articleFromDb = new Article();
+        articleFromDb.setAuthor(user);
         articleFromDb.setTitle("test");
-
         ArticleDto articleDto = new ArticleDto();
         articleDto.setTitle("test1");
-
         ArticleFieldsCanBeNullDto articleFieldsCanBeNullDto = new ArticleFieldsCanBeNullDto();
         articleFieldsCanBeNullDto.setTitle("test1");
 
-        given(repository.existsById(anyLong())).willReturn(true);
-        given(repository.getById(anyLong())).willReturn(articleFromDb);
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(repository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
         given(repository.save(articleFromDb)).willReturn(articleFromDb);
         given(modelMapper.map(articleFromDb, ArticleDto.class)).willReturn(articleDto);
 
@@ -162,19 +216,55 @@ class ArticleServiceTest {
         String actualTitle = updatedArticle.getTitle();
         Assertions.assertEquals(expectedTitle, actualTitle);
 
-        verify(repository, times(1)).existsById(anyLong());
-        verify(repository, times(1)).getById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
         verify(repository, times(1)).save(any(Article.class));
         verify(modelMapper, times(1)).map(articleFromDb, ArticleDto.class);
+        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(modelMapper);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Update article if is it someone else's")
+    void updateArticle_If_Article_Is_Someone_Else() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
+        Article articleFromDb = new Article();
+        articleFromDb.setAuthor(new User());
+        articleFromDb.setTitle("test");
+        ArticleFieldsCanBeNullDto articleDto = new ArticleFieldsCanBeNullDto();
+        articleDto.setTitle("test1");
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(repository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
+
+        SomeoneElseArticleException exception =
+                Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.updateArticle(1L, articleDto));
+
+        String expectedMessage = "It's someone else's article. You can't modify her";
+        String actualMessage = exception.getMessage();
+
+        Assertions.assertEquals(expectedMessage, actualMessage);
+
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Update article if article is not found")
     void updateArticle_If_Article_Is_Not_Found() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        User user = getUserEntity();
         ArticleFieldsCanBeNullDto articleDto = new ArticleFieldsCanBeNullDto();
         articleDto.setTitle("test1");
 
-        given(repository.existsById(anyLong())).willReturn(false);
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(repository.findById(anyLong())).willReturn(Optional.empty());
 
         ArticleNotFoundException articleNotFoundException =
                 Assertions.assertThrows(ArticleNotFoundException.class, () -> service.updateArticle(1L, articleDto));
@@ -184,6 +274,39 @@ class ArticleServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsById(anyLong());
+        verify(repository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(repository);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
+    @NotNull
+    private User getUserEntity() {
+        User value = new User(
+                1L,
+                "test",
+                "test",
+                "test@test.com",
+                "test",
+                "test",
+                Set.of(Role.USER, Role.ADMIN),
+                List.of()
+        );
+        return value;
+    }
+
+    @NotNull
+    private User getDifferentUserEntity() {
+        User value = new User(
+                2L,
+                "testt",
+                "testt",
+                "test1@test.com",
+                "testt",
+                "testt",
+                Set.of(Role.USER),
+                List.of()
+        );
+        return value;
     }
 }

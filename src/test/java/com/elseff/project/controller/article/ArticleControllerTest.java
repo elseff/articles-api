@@ -5,8 +5,10 @@ import com.elseff.project.dto.article.ArticleDto;
 import com.elseff.project.dto.validation.Violation;
 import com.elseff.project.entity.Article;
 import com.elseff.project.entity.User;
+import com.elseff.project.enums.Role;
 import com.elseff.project.repository.ArticleRepository;
 import com.elseff.project.repository.UserRepository;
+import com.elseff.project.service.auth.AuthService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -71,6 +72,7 @@ public class ArticleControllerTest {
     void setUp() {
         userRepository.deleteAll();
         userRepository.save(getUser());
+        userRepository.save(getAdmin());
         articleRepository.deleteAll();
     }
 
@@ -84,10 +86,10 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @DisplayName("All Articles")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @DisplayName("Get all Articles")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticles() throws Exception {
-        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+        User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
         articleRepository.save(getArticle(currentAuthenticatedUser));
         articleRepository.save(getArticle(currentAuthenticatedUser));
         articleRepository.save(getArticle(currentAuthenticatedUser));
@@ -112,9 +114,9 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Get article")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticleById() throws Exception {
-        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+        User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
         Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
@@ -137,7 +139,7 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Get article if article is not found")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getArticleById_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -151,7 +153,7 @@ public class ArticleControllerTest {
 
     @Test
     @DisplayName("Add article")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle() throws Exception {
         ArticleDto contentArticle = new ArticleDto(
                 null,
@@ -174,14 +176,17 @@ public class ArticleControllerTest {
 
         String expectedArticleTitle = "test add new article title";
         String actualArticleTitle = responseArticle.getTitle();
+        String expectedAuthorFirstName = "user";
+        String actualAuthorFirstName = responseArticle.getAuthor().getFirstName();
 
         Assertions.assertNotNull(responseArticle);
         Assertions.assertEquals(expectedArticleTitle, actualArticleTitle);
+        Assertions.assertEquals(expectedAuthorFirstName,actualAuthorFirstName);
     }
 
     @Test
     @DisplayName("Add article if article is not valid")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle_If_Article_Is_Not_Valid() throws Exception {
         ArticleDto contentArticle = new ArticleDto(null, "test", "test", "");
 
@@ -216,10 +221,10 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @DisplayName("Delete article")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    void deleteArticle() throws Exception {
-        User currentAuthenticatedUser = userRepository.findByEmail(getUser().getEmail());
+    @DisplayName("Delete article by user")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteArticle_By_User() throws Exception {
+        User currentAuthenticatedUser = AuthService.getCurrentUser();
         Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
@@ -227,8 +232,20 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
+    @DisplayName("Delete someone else's article by admin")
+    @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteArticle_Someone_Else_By_Admin() throws Exception {
+        User currentAuthenticatedUser = AuthService.getCurrentUser();
+        User user = userRepository.getByEmail(getUser().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(user));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
+
+        mockMvc.perform(delete(endPoint)).andExpect(status().isNoContent());
+    }
+
+    @Test
     @DisplayName("Delete article if article is not found")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -241,10 +258,38 @@ public class ArticleControllerTest {
     }
 
     @Test
+    @DisplayName("Delete article if is it someone else's")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void deleteArticle_If_Someone_Else() throws Exception {
+        User currentAuthenticatedUser = AuthService.getCurrentUser();
+        User admin = userRepository.getByEmail(getAdmin().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(admin));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
+
+        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+
+        String requestBody = objectMapper.writeValueAsString(contentArticle);
+
+        MockHttpServletRequestBuilder request = delete(endPoint)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8);
+
+        Exception resolvedException = mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+
+        String expectedErrorMessage = "It's someone else's article. You can't modify her";
+        String actualErrorMessage = resolvedException != null ? resolvedException.getMessage() : "";
+
+        Assertions.assertEquals(expectedErrorMessage, actualErrorMessage);
+    }
+
+    @Test
     @DisplayName("Update article")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle() throws Exception {
-        User userFromDb = userRepository.findByEmail(getUser().getEmail());
+        User userFromDb = userRepository.getByEmail(getUser().getEmail());
         Article articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
@@ -273,10 +318,38 @@ public class ArticleControllerTest {
     }
 
     @Test
+    @DisplayName("Update article if is it someone else's")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void updateArticle_If_Someone_Else() throws Exception {
+        User currentAuthenticatedUser = AuthService.getCurrentUser();
+        User admin = userRepository.getByEmail(getAdmin().getEmail());
+        Article articleFromDb = articleRepository.save(getArticle(admin));
+        String endPoint = this.endPoint + "/" + articleFromDb.getId();
+
+        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+
+        String requestBody = objectMapper.writeValueAsString(contentArticle);
+
+        MockHttpServletRequestBuilder request = patch(endPoint)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8);
+
+        Exception resolvedException = mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+
+        String expectedErrorMessage = "It's someone else's article. You can't modify her";
+        String actualErrorMessage = resolvedException != null ? resolvedException.getMessage() : "";
+
+        Assertions.assertEquals(expectedErrorMessage, actualErrorMessage);
+    }
+
+    @Test
     @DisplayName("Update article if article is not valid")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Article_Is_Not_Valid() throws Exception {
-        User userFromDb = userRepository.findByEmail(getUser().getEmail());
+        User userFromDb = userRepository.getByEmail(getUser().getEmail());
         Article articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
@@ -313,8 +386,8 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test")
-    @WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @DisplayName("Update article if article is not found")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
@@ -332,17 +405,32 @@ public class ArticleControllerTest {
     }
 
     private Article getArticle(User userFromDb) {
-        return new Article(null, "test article", "test", "", userFromDb);
+        return new Article(null,
+                "test article",
+                "test",
+                "",
+                userFromDb);
     }
 
     private User getUser() {
         return new User(1L,
+                "user",
+                "user",
+                "user@user.com",
                 "test",
                 "test",
-                "test@test.com",
+                Set.of(Role.USER),
+                List.of());
+    }
+
+    private User getAdmin() {
+        return new User(2L,
+                "admin",
+                "admin",
+                "admin@admin.com",
                 "test",
                 "test",
-                Set.of(),
+                Set.of(Role.USER, Role.ADMIN),
                 List.of());
     }
 }
