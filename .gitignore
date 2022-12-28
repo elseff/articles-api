@@ -1,10 +1,4 @@
 .idea
-.mvn/wrapper/maven-wrapper.jar
-.mvn/wrapper/maven-wrapper.properties
-.mvn/wrapper
 /target/*
 .gitignore
-HELP.md
 learn_spring_framework.iml
-mvnw
-mvnw.cmd
