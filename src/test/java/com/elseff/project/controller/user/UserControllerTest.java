@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(printOnlyOnFailure = false)
+@AutoConfigureMockMvc
 class UserControllerTest {
 
     @Container
@@ -54,9 +54,6 @@ class UserControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     private final String endPoint = "/api/v1/users";
 

@@ -18,35 +18,35 @@
     </properties>
     <dependencies>
 
-        <!--		Model Mapper-->
+        <!--		Model Mapper        -->
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>2.4.4</version>
         </dependency>
 
-        <!--		Boot-->
+        <!--		Boot        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
             <version>2.6.2</version>
         </dependency>
 
-        <!--		Web-->
+        <!--		Web     -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>2.6.2</version>
         </dependency>
 
-        <!--		Data Jpa-->
+        <!--		Data Jpa        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <version>2.5.6</version>
         </dependency>
 
-        <!--		DevTools-->
+        <!--		DevTools        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -54,49 +54,49 @@
             <optional>true</optional>
         </dependency>
 
-        <!--		PostgreSQL-->
+        <!--		PostgreSQL      -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!--		Lombok-->
+            <!--		Lombok      -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!--		Test-->
+        <!--		Test        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!--		Validation-->
+        <!--		Validation      -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>6.1.0.Final</version>
         </dependency>
 
-        <!--        Security  -->
+        <!--        Security        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
             <version>2.6.7</version>
         </dependency>
 
-        <!--        Security Test-->
+        <!--        Security Test       -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!--        Test Containers-->
+        <!--        Test Containers     -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
@@ -108,6 +108,18 @@
             <artifactId>junit-jupiter</artifactId>
             <version>1.17.2</version>
             <scope>test</scope>
+        </dependency>
+
+        <!--        Open API 3      -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.5.2</version>
         </dependency>
     </dependencies>
 

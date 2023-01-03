@@ -1,9 +1,13 @@
 package com.elseff.project.dto.user;
 
 import com.elseff.project.dto.article.ArticleDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
@@ -12,7 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserAllFieldsDto {
-    @Positive(message = "id should be a greater than 0")
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotNull(message = "firstname shouldn't be a null")
@@ -38,5 +43,6 @@ public class UserAllFieldsDto {
     @Size(min = 4, message = "password size should be greater than 4")
     private String password;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private List<ArticleDto> articles;
 }

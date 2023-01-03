@@ -2,7 +2,7 @@ package com.elseff.project.service.article;
 
 import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
-import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
+import com.elseff.project.dto.article.ArticleAllFieldsCanBeNullDto;
 import com.elseff.project.entity.Article;
 import com.elseff.project.entity.User;
 import com.elseff.project.enums.Role;
@@ -202,15 +202,15 @@ class ArticleServiceTest {
         articleFromDb.setTitle("test");
         ArticleDto articleDto = new ArticleDto();
         articleDto.setTitle("test1");
-        ArticleFieldsCanBeNullDto articleFieldsCanBeNullDto = new ArticleFieldsCanBeNullDto();
-        articleFieldsCanBeNullDto.setTitle("test1");
+        ArticleAllFieldsCanBeNullDto articleAllFieldsCanBeNullDto = new ArticleAllFieldsCanBeNullDto();
+        articleAllFieldsCanBeNullDto.setTitle("test1");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(repository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
         given(repository.save(articleFromDb)).willReturn(articleFromDb);
         given(modelMapper.map(articleFromDb, ArticleDto.class)).willReturn(articleDto);
 
-        ArticleDto updatedArticle = service.updateArticle(1L, articleFieldsCanBeNullDto);
+        ArticleDto updatedArticle = service.updateArticle(1L, articleAllFieldsCanBeNullDto);
 
         String expectedTitle = "test1";
         String actualTitle = updatedArticle.getTitle();
@@ -234,7 +234,7 @@ class ArticleServiceTest {
         Article articleFromDb = new Article();
         articleFromDb.setAuthor(new User());
         articleFromDb.setTitle("test");
-        ArticleFieldsCanBeNullDto articleDto = new ArticleFieldsCanBeNullDto();
+        ArticleAllFieldsCanBeNullDto articleDto = new ArticleAllFieldsCanBeNullDto();
         articleDto.setTitle("test1");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
@@ -260,7 +260,7 @@ class ArticleServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         User user = getUserEntity();
-        ArticleFieldsCanBeNullDto articleDto = new ArticleFieldsCanBeNullDto();
+        ArticleAllFieldsCanBeNullDto articleDto = new ArticleAllFieldsCanBeNullDto();
         articleDto.setTitle("test1");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);

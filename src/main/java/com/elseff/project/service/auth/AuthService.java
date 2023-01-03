@@ -5,6 +5,7 @@ import com.elseff.project.dto.auth.AuthResponse;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.entity.User;
 import com.elseff.project.enums.Role;
+import com.elseff.project.exception.auth.AuthUserNotFoundException;
 import com.elseff.project.exception.auth.AuthenticationException;
 import com.elseff.project.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class AuthService {
 
     public AuthResponse register(@Valid UserAllFieldsDto userAllFieldsDto) {
         if (repository.existsByEmail(userAllFieldsDto.getEmail())) {
+            log.warn("User with email " + userAllFieldsDto.getEmail() + " already exists");
             throw new AuthenticationException("User with email " + userAllFieldsDto.getEmail() + " already exists");
         }
 
@@ -56,7 +58,7 @@ public class AuthService {
     public AuthResponse login(@Valid AuthRequest authRequest) {
         if (!repository.existsByEmail(authRequest.getEmail())) {
             log.warn("User with email {} is not found", authRequest.getEmail());
-            throw new AuthenticationException("User with email " + authRequest.getEmail() + " is not found");
+            throw new AuthUserNotFoundException("User with email " + authRequest.getEmail() + " is not found");
         } else {
             User userFromDb = repository.getByEmail(authRequest.getEmail());
             if (!passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())) {

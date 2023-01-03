@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(printOnlyOnFailure = false)
+@AutoConfigureMockMvc
 class AuthControllerTest {
 
     @Container
@@ -205,7 +205,7 @@ class AuthControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8);
 
         mockMvc.perform(request)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test

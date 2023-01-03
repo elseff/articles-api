@@ -1,10 +1,10 @@
 package com.elseff.project.dto.user;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
 @Getter
@@ -13,7 +13,8 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserAllFieldsCanBeNullDto {
-    @Positive(message = "id should be a greater than 0")
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @Pattern(regexp = "([A-Z][a-zA-Z]*)", message = "firstname should be valid")

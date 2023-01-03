@@ -2,7 +2,7 @@ package com.elseff.project.service.article;
 
 import com.elseff.project.dto.article.ArticleAllFieldsDto;
 import com.elseff.project.dto.article.ArticleDto;
-import com.elseff.project.dto.article.ArticleFieldsCanBeNullDto;
+import com.elseff.project.dto.article.ArticleAllFieldsCanBeNullDto;
 import com.elseff.project.entity.Article;
 import com.elseff.project.entity.User;
 import com.elseff.project.enums.Role;
@@ -72,7 +72,7 @@ public class ArticleService {
         return modelMapper.map(articleFromDb, ArticleAllFieldsDto.class);
     }
 
-    public ArticleDto updateArticle(Long id, ArticleFieldsCanBeNullDto articleDto) {
+    public ArticleDto updateArticle(Long id, ArticleAllFieldsCanBeNullDto articleDto) {
         User currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         Article articleFromDb = repository.findById(id)
