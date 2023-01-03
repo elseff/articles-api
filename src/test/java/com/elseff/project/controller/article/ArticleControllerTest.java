@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc(printOnlyOnFailure = false)
+@AutoConfigureMockMvc
 public class ArticleControllerTest {
 
     @Container
@@ -181,7 +181,7 @@ public class ArticleControllerTest {
 
         Assertions.assertNotNull(responseArticle);
         Assertions.assertEquals(expectedArticleTitle, actualArticleTitle);
-        Assertions.assertEquals(expectedAuthorFirstName,actualAuthorFirstName);
+        Assertions.assertEquals(expectedAuthorFirstName, actualAuthorFirstName);
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.elseff.project.dto.auth.AuthRequest;
 import com.elseff.project.dto.auth.AuthResponse;
 import com.elseff.project.dto.user.UserAllFieldsDto;
 import com.elseff.project.entity.User;
+import com.elseff.project.exception.auth.AuthUserNotFoundException;
 import com.elseff.project.exception.auth.AuthenticationException;
 import com.elseff.project.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -92,7 +93,7 @@ class AuthServiceTest {
 
         given(repository.existsByEmail(email)).willReturn(false);
 
-        AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.login(authRequest));
+        AuthUserNotFoundException authenticationException = Assertions.assertThrows(AuthUserNotFoundException.class, () -> service.login(authRequest));
 
         String expectedMessage = String.format("User with email %s is not found", email);
         String actualMessage = authenticationException.getMessage();

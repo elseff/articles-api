@@ -34,7 +34,10 @@ public class UserService {
 
     public UserAllFieldsDto getUserById(Long id) {
         return modelMapper.map(repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id)), UserAllFieldsDto.class);
+                .orElseThrow(() -> {
+                    log.warn("could not find user " + id);
+                    return new UserNotFoundException("could not find user " + id);
+                }), UserAllFieldsDto.class);
     }
 
 
@@ -49,7 +52,10 @@ public class UserService {
         User currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         User userFromDb = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("could not find user " + id);
+                    return new UserNotFoundException("could not find user " + id);
+                });
 
         if (currentUser.getRoles().contains(Role.ADMIN)) {
             repository.deleteById(id);
@@ -67,7 +73,10 @@ public class UserService {
         User currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         User userFromDb = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("could not find user " + id);
+                    return new UserNotFoundException("could not find user " + id);
+                });
         if (userFromDb.equals(currentUser)) {
             if (userAllFieldsCanBeNullDto.getFirstName() != null)
                 userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
