@@ -1,5 +1,6 @@
 package com.elseff.project.web.api.modules.user.dto;
 
+import com.elseff.project.persistense.Role;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
