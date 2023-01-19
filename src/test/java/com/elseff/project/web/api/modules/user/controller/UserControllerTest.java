@@ -1,12 +1,13 @@
 package com.elseff.project.web.api.modules.user.controller;
 
+import com.elseff.project.exception.handling.dto.Violation;
+import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.dao.RoleRepository;
+import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
 import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
-import com.elseff.project.exception.handling.dto.Violation;
-import com.elseff.project.persistense.User;
-import com.elseff.project.security.Role;
-import com.elseff.project.persistense.dao.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -46,13 +47,16 @@ class UserControllerTest {
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private MockMvc mockMvc;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository repository;
+    private RoleRepository roleRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     private final String endPoint = "/api/v1/users";
 
@@ -65,17 +69,29 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        repository.deleteAll();
-        repository.save(getUser());
-        repository.save(getAdmin());
+        //first of all clear the users
+        userRepository.deleteAll();
+        //and just after that clear the roles
+        roleRepository.deleteAll();
+
+        //saving roles user and admin
+        roleRepository.save(new Role("ROLE_USER"));
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        //send changes to db
+        roleRepository.flush();
+
+        //saving user and admin
+        userRepository.save(getUser());
+        userRepository.save(getAdmin());
     }
 
     @Test
     @DisplayName("Context loads")
     public void contextLoads() {
+        Assertions.assertNotNull(roleRepository);
+        Assertions.assertNotNull(userRepository);
         Assertions.assertNotNull(objectMapper);
         Assertions.assertNotNull(mockMvc);
-        Assertions.assertNotNull(repository);
     }
 
     @Test
@@ -103,7 +119,8 @@ class UserControllerTest {
     @DisplayName("Get specific user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getSpecific() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User user = getUser();
+        User userFromDb = userRepository.getByEmail(user.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = get(endPoint)
@@ -140,7 +157,8 @@ class UserControllerTest {
     @DisplayName("Delete user by admin")
     @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_If_Current_User_Is_Admin() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User admin = getAdmin();
+        User userFromDb = userRepository.getByEmail(admin.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -166,7 +184,8 @@ class UserControllerTest {
     @DisplayName("Delete user by user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_By_User() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User user = getUser();
+        User userFromDb = userRepository.getByEmail(user.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -192,7 +211,8 @@ class UserControllerTest {
     @DisplayName("Delete user if someone else's profile")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_If_Someone_Else_Profile() throws Exception {
-        User userFromDb = repository.getByEmail("admin@admin.com");
+        User admin = getAdmin();
+        User userFromDb = userRepository.getByEmail(admin.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -227,7 +247,8 @@ class UserControllerTest {
     @DisplayName("Update user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User user = getUser();
+        User userFromDb = userRepository.getByEmail(user.getEmail());
         UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
 
@@ -274,7 +295,8 @@ class UserControllerTest {
     @DisplayName("Update user if user is not valid")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_User_Is_Not_Valid() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User user = getUser();
+        User userFromDb = userRepository.getByEmail(user.getEmail());
         UserAllFieldsCanBeNullDto updateUser = getNotValidUserAllFieldsCanBeNullBto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
 
@@ -312,7 +334,8 @@ class UserControllerTest {
     @DisplayName("Update user if it's someone else's profile")
     @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_Someone_Else_Profile() throws Exception {
-        User userFromDb = repository.getByEmail("user@user.com");
+        User user = getUser();
+        User userFromDb = userRepository.getByEmail(user.getEmail());
         UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
         String requestBody = objectMapper.writeValueAsString(updateUser);
 
@@ -334,24 +357,27 @@ class UserControllerTest {
     }
 
     private User getUser() {
+        Role roleUser = roleRepository.getByName("ROLE_USER");
         return new User(1L,
                 "user",
                 "user",
                 "user@user.com",
                 "test",
                 "test",
-                Set.of(Role.USER),
+                Set.of(roleUser),
                 List.of());
     }
 
     private User getAdmin() {
+        Role roleUser = roleRepository.getByName("ROLE_USER");
+        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
         return new User(2L,
                 "admin",
                 "admin",
                 "admin@admin.com",
                 "test",
                 "test",
-                Set.of(Role.USER, Role.ADMIN),
+                Set.of(roleUser, roleAdmin),
                 List.of());
     }
 

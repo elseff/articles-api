@@ -1,15 +1,16 @@
 package com.elseff.project.web.api.modules.article.service;
 
+import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.dao.ArticleRepository;
+import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
+import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsCanBeNullDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsCanBeNullDto;
-import com.elseff.project.persistense.Article;
-import com.elseff.project.persistense.User;
-import com.elseff.project.security.Role;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
 import com.elseff.project.web.api.modules.article.exception.SomeoneElseArticleException;
-import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -27,13 +28,14 @@ import java.util.stream.Collectors;
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
-
+    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
 
     private final ModelMapper modelMapper;
 
-    public ArticleService(ArticleRepository articleRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public ArticleService(ArticleRepository articleRepository, RoleRepository roleRepository, UserRepository userRepository, ModelMapper modelMapper) {
         this.articleRepository = articleRepository;
+        this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
     }
@@ -56,7 +58,9 @@ public class ArticleService {
         Article articleFromDb = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
-        if (currentUser.getAuthorities().contains(Role.ADMIN)) {
+
+        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+        if (currentUser.getAuthorities().contains(roleAdmin)) {
             log.info("delete article {} by admin {}", id, currentUser.getUsername());
             articleRepository.deleteById(id);
         } else {

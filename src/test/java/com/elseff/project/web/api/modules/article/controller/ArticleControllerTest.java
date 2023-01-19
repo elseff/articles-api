@@ -2,10 +2,11 @@ package com.elseff.project.web.api.modules.article.controller;
 
 import com.elseff.project.exception.handling.dto.Violation;
 import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
+import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.security.Role;
 import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
@@ -49,6 +50,9 @@ public class ArticleControllerTest {
     private ArticleRepository articleRepository;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -68,9 +72,22 @@ public class ArticleControllerTest {
 
     @BeforeEach
     void setUp() {
+        //first of all clear the users
         userRepository.deleteAll();
+        //and just after that clear the roles
+        roleRepository.deleteAll();
+
+        //saving roles user and admin
+        roleRepository.save(new Role("ROLE_USER"));
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        //send changes to db
+        roleRepository.flush();
+
+        //saving user and admin
         userRepository.save(getUser());
         userRepository.save(getAdmin());
+
+        //clear the articles
         articleRepository.deleteAll();
     }
 
@@ -79,6 +96,7 @@ public class ArticleControllerTest {
     public void contextLoads() {
         Assertions.assertNotNull(articleRepository);
         Assertions.assertNotNull(userRepository);
+        Assertions.assertNotNull(roleRepository);
         Assertions.assertNotNull(objectMapper);
         Assertions.assertNotNull(mockMvc);
     }
@@ -222,7 +240,7 @@ public class ArticleControllerTest {
     @DisplayName("Delete article by user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle_By_User() throws Exception {
-        UserDetails currentAuthenticatedUser = AuthService.getCurrentUser();
+        UserDetails currentAuthenticatedUser = Objects.requireNonNull(AuthService.getCurrentUser());
         User author = userRepository.getByEmail(currentAuthenticatedUser.getUsername());
         Article articleFromDb = articleRepository.save(getArticle(author));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
@@ -410,24 +428,27 @@ public class ArticleControllerTest {
     }
 
     private User getUser() {
+        Role roleUser = roleRepository.getByName("ROLE_USER");
         return new User(1L,
                 "user",
                 "user",
                 "user@user.com",
                 "test",
                 "test",
-                Set.of(Role.USER),
+                Set.of(roleUser),
                 List.of());
     }
 
     private User getAdmin() {
+        Role roleUser = roleRepository.getByName("ROLE_USER");
+        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
         return new User(2L,
                 "admin",
                 "admin",
                 "admin@admin.com",
                 "test",
                 "test",
-                Set.of(Role.USER, Role.ADMIN),
+                Set.of(roleUser, roleAdmin),
                 List.of());
     }
 }

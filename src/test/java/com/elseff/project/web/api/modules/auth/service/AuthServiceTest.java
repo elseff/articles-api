@@ -1,13 +1,14 @@
 package com.elseff.project.web.api.modules.auth.service;
 
+import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.dao.RoleRepository;
+import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
-import com.elseff.project.persistense.User;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
-import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.service.AuthService;
+import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,10 +28,13 @@ class AuthServiceTest {
     private AuthService service;
 
     @Mock
-    private UserRepository repository;
+    private UserRepository userRepository;
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -44,7 +48,7 @@ class AuthServiceTest {
     void register_If_User_Already_Exists() {
         String email = getUserAllFieldsDto().getEmail();
 
-        given(repository.existsByEmail(email)).willReturn(true);
+        given(userRepository.existsByEmail(email)).willReturn(true);
 
         AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.register(getUserAllFieldsDto()));
 
@@ -53,8 +57,8 @@ class AuthServiceTest {
 
         Assertions.assertTrue(actualMessage.contains(expectedMessage));
 
-        verify(repository, times(1)).existsByEmail(anyString());
-        verifyNoMoreInteractions(repository);
+        verify(userRepository, times(1)).existsByEmail(anyString());
+        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
@@ -65,10 +69,11 @@ class AuthServiceTest {
         user.setPassword("test");
         UserAllFieldsDto userAllFieldsDto = getUserAllFieldsDto();
 
-        given(repository.existsByEmail(email)).willReturn(false);
+        given(userRepository.existsByEmail(email)).willReturn(false);
+        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
         given(modelMapper.map(userAllFieldsDto, User.class)).willReturn(user);
         given(passwordEncoder.encode(userAllFieldsDto.getPassword())).willReturn("test");
-        given(repository.save(user)).willReturn(user);
+        given(userRepository.save(user)).willReturn(user);
 
         AuthResponse authResponse = service.register(userAllFieldsDto);
 
@@ -78,13 +83,15 @@ class AuthServiceTest {
         Assertions.assertNotNull(authResponse);
         Assertions.assertEquals(expectedEmail, actualEmail);
 
-        verify(repository, times(1)).existsByEmail(anyString());
+        verify(userRepository, times(1)).existsByEmail(anyString());
+        verify(userRepository, times(1)).save(user);
         verify(modelMapper, times(1)).map(userAllFieldsDto, User.class);
         verify(passwordEncoder, times(1)).encode(userAllFieldsDto.getPassword());
-        verify(repository, times(1)).save(user);
-        verifyNoMoreInteractions(repository);
+        verify(roleRepository, times(1)).getByName(anyString());
+        verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(modelMapper);
         verifyNoMoreInteractions(passwordEncoder);
+        verifyNoMoreInteractions(roleRepository);
     }
 
     @Test
@@ -92,7 +99,7 @@ class AuthServiceTest {
         String email = "test@test.com";
         AuthRequest authRequest = getAuthRequest();
 
-        given(repository.existsByEmail(email)).willReturn(false);
+        given(userRepository.existsByEmail(email)).willReturn(false);
 
         AuthUserNotFoundException authenticationException = Assertions.assertThrows(AuthUserNotFoundException.class, () -> service.login(authRequest));
 
@@ -101,8 +108,8 @@ class AuthServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsByEmail(anyString());
-        verifyNoMoreInteractions(repository);
+        verify(userRepository, times(1)).existsByEmail(anyString());
+        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
@@ -111,8 +118,8 @@ class AuthServiceTest {
         User userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
-        given(repository.existsByEmail(email)).willReturn(true);
-        given(repository.getByEmail(email)).willReturn(userFromDb);
+        given(userRepository.existsByEmail(email)).willReturn(true);
+        given(userRepository.getByEmail(email)).willReturn(userFromDb);
         given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(false);
 
         AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.login(authRequest));
@@ -122,10 +129,10 @@ class AuthServiceTest {
 
         Assertions.assertEquals(expectedMessage, actualMessage);
 
-        verify(repository, times(1)).existsByEmail(email);
-        verify(repository, times(1)).getByEmail(email);
+        verify(userRepository, times(1)).existsByEmail(email);
+        verify(userRepository, times(1)).getByEmail(email);
         verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
-        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(passwordEncoder);
     }
 
@@ -135,8 +142,8 @@ class AuthServiceTest {
         User userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
-        given(repository.existsByEmail(email)).willReturn(true);
-        given(repository.getByEmail(email)).willReturn(userFromDb);
+        given(userRepository.existsByEmail(email)).willReturn(true);
+        given(userRepository.getByEmail(email)).willReturn(userFromDb);
         given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(true);
 
         AuthResponse login = service.login(authRequest);
@@ -147,10 +154,10 @@ class AuthServiceTest {
         Assertions.assertNotNull(login);
         Assertions.assertEquals(expectedEmail, actualEmail);
 
-        verify(repository, times(1)).existsByEmail(email);
-        verify(repository, times(1)).getByEmail(email);
+        verify(userRepository, times(1)).existsByEmail(email);
+        verify(userRepository, times(1)).getByEmail(email);
         verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
-        verifyNoMoreInteractions(repository);
+        verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(passwordEncoder);
     }
 
@@ -174,4 +181,9 @@ class AuthServiceTest {
         userAllFieldsDto.setPassword("test");
         return userAllFieldsDto;
     }
+
+    private Role getRoleUser() {
+        return new Role("ROLE_USER");
+    }
+
 }

@@ -1,11 +1,11 @@
 package com.elseff.project.web.api.modules.auth.controller;
 
-import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
-import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.exception.handling.dto.Violation;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.UserRepository;
+import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
+import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -45,16 +45,16 @@ class AuthControllerTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private MockMvc mockMvc;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository repository;
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private MockMvc mockMvc;
 
     private final String endPoint = "/api/v1/auth";
 
@@ -67,15 +67,17 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        repository.deleteAll();
+        //clear all users
+        userRepository.deleteAll();
     }
 
     @Test
     @DisplayName("Context loads")
     public void contextLoads() {
+        Assertions.assertNotNull(passwordEncoder);
+        Assertions.assertNotNull(userRepository);
         Assertions.assertNotNull(objectMapper);
         Assertions.assertNotNull(mockMvc);
-        Assertions.assertNotNull(repository);
     }
 
     @Test
@@ -108,7 +110,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Register if email is already registered")
     void register_If_Email_Is_Already_Registered() throws Exception {
-        repository.save(getUserEntity());
+        userRepository.save(getUserEntity());
 
         UserAllFieldsDto userAllFieldsDto = getUserAllFieldsDto();
         String contentUser = objectMapper.writeValueAsString(userAllFieldsDto);
@@ -166,7 +168,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in")
     void login() throws Exception {
-        repository.save(getUserEntity());
+        userRepository.save(getUserEntity());
 
         AuthRequest authRequest = getValidAuthRequest();
         String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
@@ -213,7 +215,7 @@ class AuthControllerTest {
     void login_If_Password_Is_Incorrect() throws Exception {
         User userEntity = getUserEntity();
         userEntity.setPassword(passwordEncoder.encode("test"));
-        repository.save(userEntity);
+        userRepository.save(userEntity);
 
         AuthRequest authRequest = getValidAuthRequest();
         String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
@@ -232,7 +234,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in if AuthRequest is not valid")
     void login_If_AuthRequest_Is_Not_Valid() throws Exception {
-        User userEntity = repository.save(getUserEntity());
+        User userEntity = userRepository.save(getUserEntity());
 
         AuthRequest authRequest = getNotValidAuthRequest();
         String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
