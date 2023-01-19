@@ -1,14 +1,20 @@
 spring:
+  flyway:
+    enabled: true
   datasource:
-    url: '${url}'
-    username: '${username}'
-    password: '${password}'
+    url: '${db_url}'
+    username: '${db_username}'
+    password: '${db_password}'
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  output:
+    ansi:
+      enabled: always
 logging:
   level:
     org:
