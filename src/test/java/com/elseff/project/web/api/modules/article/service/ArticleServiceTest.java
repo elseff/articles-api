@@ -1,17 +1,17 @@
 package com.elseff.project.web.api.modules.article.service;
 
 import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
+import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.security.Role;
 import com.elseff.project.security.UserDetailsImpl;
 import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsCanBeNullDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
 import com.elseff.project.web.api.modules.article.exception.SomeoneElseArticleException;
-import com.elseff.project.web.api.modules.article.service.ArticleService;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import lombok.Cleanup;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +41,9 @@ class ArticleServiceTest {
 
     @Mock
     private ArticleRepository articleRepository;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -111,15 +114,19 @@ class ArticleServiceTest {
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetails user = getUserDetails();
 
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
+        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(new Article(1L, "test", "test", null, getUserEntity())));
         willDoNothing().given(articleRepository).deleteById(anyLong());
-        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
 
         service.deleteArticleById(1L);
 
         verify(articleRepository, times(1)).deleteById(anyLong());
         verify(articleRepository, times(1)).findById(anyLong());
+        verify(roleRepository, times(1)).getByName(anyString());
         verifyNoMoreInteractions(articleRepository);
+        verifyNoMoreInteractions(roleRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
@@ -130,10 +137,12 @@ class ArticleServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl user = getUserDetails();
-        user.setGrantedAuthorities(Set.of(Role.USER));
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
+        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
+        given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(new Article(1L, "test", "test", null, getDifferentUserEntity())));
+        user.setGrantedAuthorities(Set.of(roleRepository.getByName("ROLE_USER")));
 
         SomeoneElseArticleException exception = Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.deleteArticleById(1L));
 
@@ -143,7 +152,9 @@ class ArticleServiceTest {
         Assertions.assertEquals(expectedMessage, actualMessage);
 
         verify(articleRepository, times(1)).findById(anyLong());
+        verify(roleRepository, times(2)).getByName(anyString());
         verifyNoMoreInteractions(articleRepository);
+        verifyNoMoreInteractions(roleRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
@@ -293,9 +304,9 @@ class ArticleServiceTest {
     @NotNull
     private UserDetailsImpl getUserDetails() {
         return new UserDetailsImpl(
-            "test@test.com",
+                "test@test.com",
                 "test",
-                Set.of(Role.USER, Role.ADMIN)
+                Set.of(getRoleUser(), getRoleAdmin())
         );
     }
 
@@ -308,7 +319,7 @@ class ArticleServiceTest {
                 "test@test.com",
                 "test",
                 "test",
-                Set.of(Role.USER, Role.ADMIN),
+                Set.of(getRoleUser(), getRoleAdmin()),
                 List.of()
         );
         return value;
@@ -323,9 +334,17 @@ class ArticleServiceTest {
                 "test1@test.com",
                 "testt",
                 "testt",
-                Set.of(Role.USER),
+                Set.of(getRoleUser()),
                 List.of()
         );
         return value;
+    }
+
+    private Role getRoleAdmin() {
+        return new Role("ROLE_ADMIN");
+    }
+
+    private Role getRoleUser() {
+        return new Role("ROLE_USER");
     }
 }

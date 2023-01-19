@@ -1,16 +1,16 @@
 package com.elseff.project.web.api.modules.user.service;
 
+import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.dao.RoleRepository;
+import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.UserDetailsImpl;
+import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
 import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
-import com.elseff.project.persistense.User;
-import com.elseff.project.security.Role;
 import com.elseff.project.web.api.modules.user.exception.SomeoneElseUserProfileException;
 import com.elseff.project.web.api.modules.user.exception.UserNotFoundException;
-import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.service.AuthService;
-import com.elseff.project.web.api.modules.user.service.UserService;
 import lombok.Cleanup;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +37,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -109,14 +112,18 @@ class UserServiceTest {
         UserDetailsImpl user = getUserDetails();
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(getDifferentUserEntity()));
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(getUserEntity()));
+        given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
+        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
         willDoNothing().given(userRepository).deleteById(anyLong());
 
-        service.deleteUser(2L);
+        service.deleteUser(0L);
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).deleteById(anyLong());
+        verify(roleRepository,times(1)).getByName(anyString());
         verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(roleRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
@@ -234,7 +241,7 @@ class UserServiceTest {
         return new UserDetailsImpl(
                 "test@test.com",
                 "test",
-                Set.of(Role.USER, Role.ADMIN)
+                Set.of(getRoleUser(), getRoleAdmin())
         );
     }
 
@@ -247,7 +254,7 @@ class UserServiceTest {
                 "test@test.com",
                 "test",
                 "test",
-                Set.of(Role.USER, Role.ADMIN),
+                Set.of(getRoleUser(), getRoleAdmin()),
                 List.of()
         );
         return value;
@@ -262,9 +269,17 @@ class UserServiceTest {
                 "test1@test.com",
                 "testt",
                 "testt",
-                Set.of(Role.USER),
+                Set.of(getRoleUser()),
                 List.of()
         );
         return value;
+    }
+
+    private Role getRoleAdmin() {
+        return new Role(1L, "ROLE_ADMIN");
+    }
+
+    private Role getRoleUser() {
+        return new Role(1L, "ROLE_USER");
     }
 }
