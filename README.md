@@ -3,7 +3,7 @@
 project for study \
 BackEnd part of project
 
-For launch the project you should to set the db_url, db_user and db_password environment variables in Run/Debug Configuration or in the 
+For launch the project you should to create the database and set the db_url, db_user and db_password environment variables in Run/Debug Configuration or in the 
 `
 application.yaml`
 
