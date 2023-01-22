@@ -25,6 +25,7 @@ mvn clean package
 docker-compose build
 docker-compose up
 ```
+<hr/>
 
 ### For use Flyway Plugin
 You need to specify the url, user and password database variables in the `flyway.conf`
