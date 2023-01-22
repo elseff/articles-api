@@ -21,6 +21,7 @@ spring:
 You can run the application with the Docker-compose.
 
 ```
+cd pfiles
 mvn clean package
 docker-compose build
 docker-compose up
