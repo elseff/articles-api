@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      - db_url=jdbc:postgresql://db:5432/learn_spring
+      - db_username=postgres
+      - db_password=root
+    depends_on:
+      - db
+    links:
+      - db:db
+  db:
+    container_name: pg
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=learn_spring
+      - POSTGRES_USER=postgres
+    ports:
+    - 5432:5432
+    restart: always
