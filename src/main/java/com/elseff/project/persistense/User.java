@@ -3,6 +3,8 @@ package com.elseff.project.persistense;
 import lombok.*;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -36,6 +38,9 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "registration_date", nullable = false)
+    private Timestamp registrationDate;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(
@@ -51,6 +56,11 @@ public class User {
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "author")
     private List<Article> articles;
+
+    @PrePersist
+    private void init() {
+        this.registrationDate = Timestamp.from(Instant.now());
+    }
 
     @Override
     public boolean equals(Object o) {

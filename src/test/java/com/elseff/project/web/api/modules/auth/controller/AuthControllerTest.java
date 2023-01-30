@@ -27,6 +27,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -276,7 +278,8 @@ class AuthControllerTest {
                 "TestLastName",
                 "test@test.com",
                 "Test",
-                "root", null
+                "root",
+                List.of()
         );
     }
 
@@ -288,6 +291,7 @@ class AuthControllerTest {
                 "test@test.com",
                 "test",
                 passwordEncoder.encode("root"),
+                Timestamp.from(Instant.now()),
                 Set.of(),
                 List.of());
     }

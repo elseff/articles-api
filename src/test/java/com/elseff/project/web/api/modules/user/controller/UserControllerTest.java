@@ -29,6 +29,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -364,6 +366,7 @@ class UserControllerTest {
                 "user@user.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(roleUser),
                 List.of());
     }
@@ -377,6 +380,7 @@ class UserControllerTest {
                 "admin@admin.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(roleUser, roleAdmin),
                 List.of());
     }

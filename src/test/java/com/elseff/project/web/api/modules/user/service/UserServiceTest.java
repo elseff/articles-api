@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.modelmapper.ModelMapper;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -254,6 +256,7 @@ class UserServiceTest {
                 "test@test.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(getRoleUser(), getRoleAdmin()),
                 List.of()
         );
@@ -269,6 +272,7 @@ class UserServiceTest {
                 "test1@test.com",
                 "testt",
                 "testt",
+                Timestamp.from(Instant.now()),
                 Set.of(getRoleUser()),
                 List.of()
         );

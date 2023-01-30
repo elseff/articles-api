@@ -23,6 +23,8 @@ import org.mockito.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -319,6 +321,7 @@ class ArticleServiceTest {
                 "test@test.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(getRoleUser(), getRoleAdmin()),
                 List.of()
         );
@@ -334,6 +337,7 @@ class ArticleServiceTest {
                 "test1@test.com",
                 "testt",
                 "testt",
+                Timestamp.from(Instant.now()),
                 Set.of(getRoleUser()),
                 List.of()
         );
