@@ -3,7 +3,7 @@ package com.elseff.project.web.api.modules.auth.controller;
 import com.elseff.project.exception.handling.dto.Violation;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -172,8 +172,8 @@ class AuthControllerTest {
     void login() throws Exception {
         userRepository.save(getUserEntity());
 
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -189,7 +189,7 @@ class AuthControllerTest {
         AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
 
         String expectedAuthToken = Base64.encodeBase64String(
-                (authRequest.getEmail() + ":" + authRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
+                (authLoginRequest.getEmail() + ":" + authLoginRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
         String actualAuthToken = authResponse.getToken();
 
         Assertions.assertEquals(expectedAuthToken, actualAuthToken);
@@ -198,8 +198,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in if user is not found")
     void login_If_User_Is_Not_Found() throws Exception {
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -219,8 +219,8 @@ class AuthControllerTest {
         userEntity.setPassword(passwordEncoder.encode("test"));
         userRepository.save(userEntity);
 
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -238,8 +238,8 @@ class AuthControllerTest {
     void login_If_AuthRequest_Is_Not_Valid() throws Exception {
         User userEntity = userRepository.save(getUserEntity());
 
-        AuthRequest authRequest = getNotValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getNotValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -308,14 +308,14 @@ class AuthControllerTest {
         );
     }
 
-    private AuthRequest getValidAuthRequest() {
-        return new AuthRequest(
+    private AuthLoginRequest getValidAuthRequest() {
+        return new AuthLoginRequest(
                 "test@test.com",
                 "root");
     }
 
-    private AuthRequest getNotValidAuthRequest() {
-        return new AuthRequest(
+    private AuthLoginRequest getNotValidAuthRequest() {
+        return new AuthLoginRequest(
                 "t",
                 "t");
     }

@@ -4,7 +4,8 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
@@ -46,11 +47,11 @@ class AuthServiceTest {
 
     @Test
     void register_If_User_Already_Exists() {
-        String email = getUserAllFieldsDto().getEmail();
+        String email = getAuthRegisterRequest().getEmail();
 
         given(userRepository.existsByEmail(email)).willReturn(true);
 
-        AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.register(getUserAllFieldsDto()));
+        AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.register(getAuthRegisterRequest()));
 
         String expectedMessage = String.format("User with email %s already exists", email);
         String actualMessage = authenticationException.getMessage();
@@ -63,19 +64,19 @@ class AuthServiceTest {
 
     @Test
     void register() {
-        String email = getUserAllFieldsDto().getEmail();
+        String email = getAuthRegisterRequest().getEmail();
         User user = new User();
         user.setEmail(email);
         user.setPassword("test");
-        UserAllFieldsDto userAllFieldsDto = getUserAllFieldsDto();
+        AuthRegisterRequest authRegisterRequest = getAuthRegisterRequest();
 
         given(userRepository.existsByEmail(email)).willReturn(false);
         given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
-        given(modelMapper.map(userAllFieldsDto, User.class)).willReturn(user);
-        given(passwordEncoder.encode(userAllFieldsDto.getPassword())).willReturn("test");
+        given(modelMapper.map(authRegisterRequest, User.class)).willReturn(user);
+        given(passwordEncoder.encode(authRegisterRequest.getPassword())).willReturn("test");
         given(userRepository.save(user)).willReturn(user);
 
-        AuthResponse authResponse = service.register(userAllFieldsDto);
+        AuthResponse authResponse = service.register(authRegisterRequest);
 
         String expectedEmail = "test@test.com";
         String actualEmail = authResponse.getEmail();
@@ -85,8 +86,8 @@ class AuthServiceTest {
 
         verify(userRepository, times(1)).existsByEmail(anyString());
         verify(userRepository, times(1)).save(user);
-        verify(modelMapper, times(1)).map(userAllFieldsDto, User.class);
-        verify(passwordEncoder, times(1)).encode(userAllFieldsDto.getPassword());
+        verify(modelMapper, times(1)).map(authRegisterRequest, User.class);
+        verify(passwordEncoder, times(1)).encode(authRegisterRequest.getPassword());
         verify(roleRepository, times(1)).getByName(anyString());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(modelMapper);
@@ -97,11 +98,11 @@ class AuthServiceTest {
     @Test
     void login_If_User_Not_Found() {
         String email = "test@test.com";
-        AuthRequest authRequest = getAuthRequest();
+        AuthLoginRequest authLoginRequest = getAuthLoginRequest();
 
         given(userRepository.existsByEmail(email)).willReturn(false);
 
-        AuthUserNotFoundException authenticationException = Assertions.assertThrows(AuthUserNotFoundException.class, () -> service.login(authRequest));
+        AuthUserNotFoundException authenticationException = Assertions.assertThrows(AuthUserNotFoundException.class, () -> service.login(authLoginRequest));
 
         String expectedMessage = String.format("User with email %s is not found", email);
         String actualMessage = authenticationException.getMessage();
@@ -114,15 +115,15 @@ class AuthServiceTest {
 
     @Test
     void login_If_Password_Is_Incorrect() {
-        AuthRequest authRequest = getAuthRequest();
+        AuthLoginRequest authLoginRequest = getAuthLoginRequest();
         User userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
         given(userRepository.existsByEmail(email)).willReturn(true);
         given(userRepository.getByEmail(email)).willReturn(userFromDb);
-        given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(false);
+        given(passwordEncoder.matches(authLoginRequest.getPassword(), userFromDb.getPassword())).willReturn(false);
 
-        AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.login(authRequest));
+        AuthenticationException authenticationException = Assertions.assertThrows(AuthenticationException.class, () -> service.login(authLoginRequest));
 
         String expectedMessage = "Incorrect password";
         String actualMessage = authenticationException.getMessage();
@@ -131,22 +132,22 @@ class AuthServiceTest {
 
         verify(userRepository, times(1)).existsByEmail(email);
         verify(userRepository, times(1)).getByEmail(email);
-        verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
+        verify(passwordEncoder, times(1)).matches(authLoginRequest.getPassword(), userFromDb.getPassword());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(passwordEncoder);
     }
 
     @Test
     void login() {
-        AuthRequest authRequest = getAuthRequest();
+        AuthLoginRequest authLoginRequest = getAuthLoginRequest();
         User userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
         given(userRepository.existsByEmail(email)).willReturn(true);
         given(userRepository.getByEmail(email)).willReturn(userFromDb);
-        given(passwordEncoder.matches(authRequest.getPassword(), userFromDb.getPassword())).willReturn(true);
+        given(passwordEncoder.matches(authLoginRequest.getPassword(), userFromDb.getPassword())).willReturn(true);
 
-        AuthResponse login = service.login(authRequest);
+        AuthResponse login = service.login(authLoginRequest);
 
         String expectedEmail = "test@test.com";
         String actualEmail = login.getEmail();
@@ -156,7 +157,7 @@ class AuthServiceTest {
 
         verify(userRepository, times(1)).existsByEmail(email);
         verify(userRepository, times(1)).getByEmail(email);
-        verify(passwordEncoder, times(1)).matches(authRequest.getPassword(), userFromDb.getPassword());
+        verify(passwordEncoder, times(1)).matches(authLoginRequest.getPassword(), userFromDb.getPassword());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(passwordEncoder);
     }
@@ -171,19 +172,24 @@ class AuthServiceTest {
         return user;
     }
 
-    private AuthRequest getAuthRequest() {
-        return new AuthRequest("test@test.com", "test");
-    }
-
-    private UserAllFieldsDto getUserAllFieldsDto() {
-        UserAllFieldsDto userAllFieldsDto = new UserAllFieldsDto();
-        userAllFieldsDto.setEmail("test@test.com");
-        userAllFieldsDto.setPassword("test");
-        return userAllFieldsDto;
+    private AuthLoginRequest getAuthLoginRequest() {
+        AuthLoginRequest authLoginRequest = new AuthLoginRequest();
+        authLoginRequest.setEmail("test@test.com");
+        authLoginRequest.setPassword("test");
+        return authLoginRequest;
     }
 
     private Role getRoleUser() {
         return new Role("ROLE_USER");
     }
 
+    private AuthRegisterRequest getAuthRegisterRequest(){
+        AuthRegisterRequest authRegisterRequest = new AuthRegisterRequest();
+        authRegisterRequest.setFirstName("Test");
+        authRegisterRequest.setLastName("Test");
+        authRegisterRequest.setCountry("Test");
+        authRegisterRequest.setEmail("test@test.com");
+        authRegisterRequest.setPassword("test");
+        return authRegisterRequest;
+    }
 }

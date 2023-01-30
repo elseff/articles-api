@@ -1,8 +1,8 @@
 package com.elseff.project.web.api.modules.auth.controller;
 
-import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,8 +49,8 @@ public class AuthController {
     public AuthResponse register(@Parameter(description = "User for registration")
                                  @RequestBody
                                  @Valid
-                                         UserAllFieldsDto userAllFieldsDto) {
-        return authService.register(userAllFieldsDto);
+                                         AuthRegisterRequest authRegisterRequest) {
+        return authService.register(authRegisterRequest);
     }
 
     @Operation(summary = "Log in",
@@ -69,7 +69,7 @@ public class AuthController {
     public AuthResponse login(@Parameter(description = "User credentials")
                               @RequestBody
                               @Valid
-                                      AuthRequest authRequest) {
-        return authService.login(authRequest);
+                                      AuthLoginRequest authLoginRequest) {
+        return authService.login(authLoginRequest);
     }
 }
