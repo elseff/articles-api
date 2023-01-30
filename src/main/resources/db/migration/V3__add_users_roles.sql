@@ -9,3 +9,7 @@ create table users_roles
     constraint users_roles_pkey
         primary key (user_id, role_id)
 );
+
+insert into public.users_roles
+values (0, 1),
+       (0, 2);
