@@ -6,9 +6,8 @@ import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.UserDetailsImpl;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
+import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
 import com.elseff.project.web.api.modules.user.exception.SomeoneElseUserProfileException;
 import com.elseff.project.web.api.modules.user.exception.UserNotFoundException;
 import lombok.Cleanup;
@@ -27,10 +26,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class UserServiceTest {
 
@@ -74,24 +73,39 @@ class UserServiceTest {
     @Test
     @DisplayName("Get user by id")
     void getUserById() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        UserDetailsImpl userDetails = getUserDetails();
         User userFromDb = new User();
 
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(userFromDb));
-        given(modelMapper.map(userFromDb, UserAllFieldsDto.class)).willReturn(new UserAllFieldsDto());
+        given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
+        given(modelMapper.map(userFromDb, UserDto.class)).willReturn(new UserDto());
 
-        UserAllFieldsDto user = service.getUserById(anyLong());
+        UserDto user = service.getUserById(1L);
 
         Assertions.assertNotNull(user);
 
         verify(userRepository, times(1)).findById(anyLong());
-        verify(modelMapper, times(1)).map(userFromDb, UserAllFieldsDto.class);
+        verify(modelMapper, times(1)).map(userFromDb, UserDto.class);
+        verify(roleRepository, times(1)).getByName(anyString());
         verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(roleRepository);
         verifyNoMoreInteractions(modelMapper);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Get user by id if user is not found")
     void getUserById_When_User_Does_Not_Exists() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        UserDetailsImpl userDetails = getUserDetails();
+        User userFromDb = new User();
+
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
         UserNotFoundException exception = Assertions.assertThrows(UserNotFoundException.class, () ->
@@ -116,14 +130,13 @@ class UserServiceTest {
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(getUserEntity()));
         given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
-        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
         willDoNothing().given(userRepository).deleteById(anyLong());
 
         service.deleteUser(0L);
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).deleteById(anyLong());
-        verify(roleRepository,times(1)).getByName(anyString());
+        verify(roleRepository, times(1)).getByName(anyString());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(roleRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
@@ -160,17 +173,20 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
+
         User userEntity = getUserEntity();
-        UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
-        userAllFieldsCanBeNullDto.setFirstName("test1");
-        UserAllFieldsDto userAllFieldsDto = new UserAllFieldsDto();
-        userAllFieldsDto.setFirstName("test1");
+        UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
+        userUpdateRequest.setFirstName("test1");
+        UserDto userDto = new UserDto();
+        userDto.setFirstName("test1");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(userEntity));
-        given(modelMapper.map(userEntity, UserAllFieldsDto.class)).willReturn(userAllFieldsDto);
+        given(roleRepository.getByName("ROLE_ADMIN")).willReturn(getRoleAdmin());
+        given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
+        given(modelMapper.map(userEntity, UserDto.class)).willReturn(userDto);
 
-        UserAllFieldsDto updatedUser = service.updateUser(1L, userAllFieldsCanBeNullDto);
+        UserDto updatedUser = service.updateUser(1L, userUpdateRequest);
 
         String expectedFirstName = "test1";
         String actualFirstName = updatedUser.getFirstName();
@@ -179,7 +195,7 @@ class UserServiceTest {
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).save(userEntity);
-        verify(modelMapper, times(1)).map(userEntity, UserAllFieldsDto.class);
+        verify(modelMapper, times(1)).map(userEntity, UserDto.class);
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(modelMapper);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
@@ -192,14 +208,14 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
-        UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
-        userAllFieldsCanBeNullDto.setFirstName("testt");
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("testt");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(getDifferentUserEntity()));
 
         SomeoneElseUserProfileException exception = Assertions.assertThrows(SomeoneElseUserProfileException.class,
-                () -> service.updateUser(1L, userAllFieldsCanBeNullDto));
+                () -> service.updateUser(1L, updateRequest));
 
         String expectedMessage = "It's someone else's profile. You can't modify him";
         String actualMessage = exception.getMessage();
@@ -218,14 +234,14 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
-        UserAllFieldsCanBeNullDto userDto = new UserAllFieldsCanBeNullDto();
-        userDto.setFirstName("test1");
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("test1");
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
         UserNotFoundException articleNotFoundException =
-                Assertions.assertThrows(UserNotFoundException.class, () -> service.updateUser(1L, userDto));
+                Assertions.assertThrows(UserNotFoundException.class, () -> service.updateUser(1L, updateRequest));
 
         String expectedMessage = "could not find user 1";
         String actualMessage = articleNotFoundException.getMessage();
@@ -280,7 +296,7 @@ class UserServiceTest {
     }
 
     private Role getRoleAdmin() {
-        return new Role(1L, "ROLE_ADMIN");
+        return new Role(2L, "ROLE_ADMIN");
     }
 
     private Role getRoleUser() {

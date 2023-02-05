@@ -9,7 +9,6 @@ import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -183,7 +182,7 @@ class AuthServiceTest {
         return new Role("ROLE_USER");
     }
 
-    private AuthRegisterRequest getAuthRegisterRequest(){
+    private AuthRegisterRequest getAuthRegisterRequest() {
         AuthRegisterRequest authRegisterRequest = new AuthRegisterRequest();
         authRegisterRequest.setFirstName("Test");
         authRegisterRequest.setLastName("Test");

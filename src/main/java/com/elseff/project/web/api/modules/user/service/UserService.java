@@ -1,15 +1,14 @@
 package com.elseff.project.web.api.modules.user.service;
 
-import com.elseff.project.persistense.dao.RoleRepository;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
-import com.elseff.project.web.api.modules.user.dto.UserDto;
-import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.Role;
-import com.elseff.project.web.api.modules.user.exception.SomeoneElseUserProfileException;
-import com.elseff.project.web.api.modules.user.exception.UserNotFoundException;
+import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
+import com.elseff.project.web.api.modules.user.dto.UserDto;
+import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
+import com.elseff.project.web.api.modules.user.exception.SomeoneElseUserProfileException;
+import com.elseff.project.web.api.modules.user.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,19 +34,38 @@ public class UserService {
         this.modelMapper = modelMapper;
     }
 
-    public UserAllFieldsDto getUserById(Long id) {
-        return modelMapper.map(userRepository.findById(id)
+    public UserDto getUserById(Long id) {
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("could not find user " + id);
                     return new UserNotFoundException("could not find user " + id);
-                }), UserAllFieldsDto.class);
+                });
+
+        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+
+        if (!currentUser.getAuthorities().contains(roleAdmin)) {
+            user.setEmail(null);
+            user.setRoles(null);
+            user.setRegistrationDate(null);
+        }
+        user.setPassword(null);
+        return modelMapper.map(user, UserDto.class);
     }
 
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> modelMapper.map(user, UserDto.class))
+                .map(user -> {
+                    user.setRoles(null);
+                    user.setEmail(null);
+                    user.setPassword(null);
+                    user.setArticles(null);
+                    user.setRegistrationDate(null);
+                    return modelMapper.map(user, UserDto.class);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -59,7 +77,9 @@ public class UserService {
                     log.warn("could not find user " + id);
                     return new UserNotFoundException("could not find user " + id);
                 });
+
         Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+
         if (currentUser.getAuthorities().contains(roleAdmin)) {
             userRepository.deleteById(id);
             log.info("delete user {} by admin {}", userFromDb.getEmail(), currentUser.getUsername());
@@ -72,7 +92,7 @@ public class UserService {
         }
     }
 
-    public UserAllFieldsDto updateUser(Long id, UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto) {
+    public UserDto updateUser(Long id, UserUpdateRequest updateRequest) {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         User userFromDb = userRepository.findById(id)
@@ -80,17 +100,26 @@ public class UserService {
                     log.warn("could not find user " + id);
                     return new UserNotFoundException("could not find user " + id);
                 });
+
         if (userFromDb.getEmail().equals(currentUser.getUsername())) {
-            if (userAllFieldsCanBeNullDto.getFirstName() != null)
-                userFromDb.setFirstName(userAllFieldsCanBeNullDto.getFirstName());
-            if (userAllFieldsCanBeNullDto.getLastName() != null)
-                userFromDb.setLastName(userAllFieldsCanBeNullDto.getLastName());
-            if (userAllFieldsCanBeNullDto.getEmail() != null) userFromDb.setEmail(userAllFieldsCanBeNullDto.getEmail());
-            if (userAllFieldsCanBeNullDto.getCountry() != null)
-                userFromDb.setCountry(userAllFieldsCanBeNullDto.getCountry());
+            if (updateRequest.getFirstName() != null)
+                userFromDb.setFirstName(updateRequest.getFirstName());
+            if (updateRequest.getLastName() != null)
+                userFromDb.setLastName(updateRequest.getLastName());
+            if (updateRequest.getEmail() != null) userFromDb.setEmail(updateRequest.getEmail());
+            if (updateRequest.getCountry() != null)
+                userFromDb.setCountry(updateRequest.getCountry());
+
             userRepository.save(userFromDb);
             log.info("updated user profile {}", userFromDb.getEmail());
-            return modelMapper.map(userFromDb, UserAllFieldsDto.class);
+
+            Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+
+            if (!currentUser.getAuthorities().contains(roleAdmin)) {
+                userFromDb.setRoles(null);
+            }
+            userFromDb.setPassword(null);
+            return modelMapper.map(userFromDb, UserDto.class);
         } else
             throw new SomeoneElseUserProfileException();
     }

@@ -5,9 +5,8 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
+import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -133,12 +132,12 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        UserAllFieldsDto userAllFieldsDto = objectMapper.readValue(response, UserAllFieldsDto.class);
+        UserDto userDto = objectMapper.readValue(response, UserDto.class);
 
-        String expectedUserEmail = userFromDb.getEmail();
-        String actualUserEmail = userAllFieldsDto.getEmail();
+        String expectedUserFirstName = userFromDb.getFirstName();
+        String actualUserFirstName = userDto.getFirstName();
 
-        Assertions.assertEquals(expectedUserEmail, actualUserEmail);
+        Assertions.assertEquals(expectedUserFirstName, actualUserFirstName);
     }
 
     @Test
@@ -251,8 +250,8 @@ class UserControllerTest {
     void updateUser() throws Exception {
         User user = getUser();
         User userFromDb = userRepository.getByEmail(user.getEmail());
-        UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
-        String requestBody = objectMapper.writeValueAsString(updateUser);
+        UserUpdateRequest updateRequest = getUserUpdateRequest();
+        String requestBody = objectMapper.writeValueAsString(updateRequest);
 
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
@@ -265,10 +264,10 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        UserAllFieldsDto userAllFieldsDto = objectMapper.readValue(response, UserAllFieldsDto.class);
+        UserDto userAllFieldsDto = objectMapper.readValue(response, UserDto.class);
 
-        String expectedUpdatedFirstName = updateUser.getFirstName();
-        String expectedUpdatedEmail = updateUser.getEmail();
+        String expectedUpdatedFirstName = updateRequest.getFirstName();
+        String expectedUpdatedEmail = updateRequest.getEmail();
         String actualUpdatedFirstName = userAllFieldsDto.getFirstName();
         String actualUpdatedEmail = userAllFieldsDto.getEmail();
 
@@ -280,8 +279,8 @@ class UserControllerTest {
     @DisplayName("Update user if user is not found")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_User_Not_Found() throws Exception {
-        UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
-        String requestBody = objectMapper.writeValueAsString(updateUser);
+        UserUpdateRequest updateRequest = getUserUpdateRequest();
+        String requestBody = objectMapper.writeValueAsString(updateRequest);
         String endPoint = this.endPoint + "/" + 0;
 
         MockHttpServletRequestBuilder request = patch(endPoint)
@@ -299,8 +298,8 @@ class UserControllerTest {
     void updateUser_If_User_Is_Not_Valid() throws Exception {
         User user = getUser();
         User userFromDb = userRepository.getByEmail(user.getEmail());
-        UserAllFieldsCanBeNullDto updateUser = getNotValidUserAllFieldsCanBeNullBto();
-        String requestBody = objectMapper.writeValueAsString(updateUser);
+        UserUpdateRequest updateRequest = getNotValidUserUpdateRequest();
+        String requestBody = objectMapper.writeValueAsString(updateRequest);
 
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
@@ -338,8 +337,8 @@ class UserControllerTest {
     void updateUser_If_Someone_Else_Profile() throws Exception {
         User user = getUser();
         User userFromDb = userRepository.getByEmail(user.getEmail());
-        UserAllFieldsCanBeNullDto updateUser = getUserAllFieldsCanBeNullDto();
-        String requestBody = objectMapper.writeValueAsString(updateUser);
+        UserUpdateRequest updateRequest = getUserUpdateRequest();
+        String requestBody = objectMapper.writeValueAsString(updateRequest);
 
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
@@ -385,17 +384,17 @@ class UserControllerTest {
                 List.of());
     }
 
-    private UserAllFieldsCanBeNullDto getUserAllFieldsCanBeNullDto() {
-        UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
-        userAllFieldsCanBeNullDto.setFirstName("NewTest");
-        userAllFieldsCanBeNullDto.setEmail("test1@test.com");
-        return userAllFieldsCanBeNullDto;
+    private UserUpdateRequest getUserUpdateRequest() {
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("NewTest");
+        updateRequest.setEmail("test1@test.com");
+        return updateRequest;
     }
 
-    private UserAllFieldsCanBeNullDto getNotValidUserAllFieldsCanBeNullBto() {
-        UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto = new UserAllFieldsCanBeNullDto();
-        userAllFieldsCanBeNullDto.setFirstName("test1");
-        userAllFieldsCanBeNullDto.setEmail("test");
-        return userAllFieldsCanBeNullDto;
+    private UserUpdateRequest getNotValidUserUpdateRequest() {
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("test1");
+        updateRequest.setEmail("test");
+        return updateRequest;
     }
 }
