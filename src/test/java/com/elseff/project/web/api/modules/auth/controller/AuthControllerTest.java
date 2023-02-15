@@ -3,9 +3,9 @@ package com.elseff.project.web.api.modules.auth.controller;
 import com.elseff.project.exception.handling.dto.Violation;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.dto.AuthRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -27,6 +27,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -83,9 +85,9 @@ class AuthControllerTest {
     @Test
     @DisplayName("Register")
     void register() throws Exception {
-        UserAllFieldsDto contentUser = getUserAllFieldsDto();
+        AuthRegisterRequest registerRequest = getAuthRegisterRequest();
 
-        String requestBody = objectMapper.writeValueAsString(contentUser);
+        String requestBody = objectMapper.writeValueAsString(registerRequest);
 
         String endPoint = this.endPoint + "/register";
 
@@ -94,17 +96,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8);
 
-        String response = mockMvc.perform(request)
+        mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-
-        AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
-
-        String expectedToken = Base64.encodeBase64String(
-                (contentUser.getEmail() + ":" + contentUser.getPassword()).getBytes(StandardCharsets.UTF_8));
-        String actualToken = authResponse.getToken();
-
-        Assertions.assertEquals(expectedToken, actualToken);
     }
 
     @Test
@@ -112,8 +106,8 @@ class AuthControllerTest {
     void register_If_Email_Is_Already_Registered() throws Exception {
         userRepository.save(getUserEntity());
 
-        UserAllFieldsDto userAllFieldsDto = getUserAllFieldsDto();
-        String contentUser = objectMapper.writeValueAsString(userAllFieldsDto);
+        AuthRegisterRequest registerRequest = getAuthRegisterRequest();
+        String contentUser = objectMapper.writeValueAsString(registerRequest);
 
         String endPoint = this.endPoint + "/register";
 
@@ -129,8 +123,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("Register if user is not valid")
     void register_If_User_Is_Not_Valid() throws Exception {
-        UserAllFieldsDto userAllFieldsDto = getNotValidUserAllFieldsDto();
-        String contentUser = objectMapper.writeValueAsString(userAllFieldsDto);
+        AuthRegisterRequest registerRequest = getNotValidAuthRegisterRequest();
+        String contentUser = objectMapper.writeValueAsString(registerRequest);
 
         String endPoint = this.endPoint + "/register";
 
@@ -170,8 +164,8 @@ class AuthControllerTest {
     void login() throws Exception {
         userRepository.save(getUserEntity());
 
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -187,7 +181,7 @@ class AuthControllerTest {
         AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
 
         String expectedAuthToken = Base64.encodeBase64String(
-                (authRequest.getEmail() + ":" + authRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
+                (authLoginRequest.getEmail() + ":" + authLoginRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
         String actualAuthToken = authResponse.getToken();
 
         Assertions.assertEquals(expectedAuthToken, actualAuthToken);
@@ -196,8 +190,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in if user is not found")
     void login_If_User_Is_Not_Found() throws Exception {
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -217,8 +211,8 @@ class AuthControllerTest {
         userEntity.setPassword(passwordEncoder.encode("test"));
         userRepository.save(userEntity);
 
-        AuthRequest authRequest = getValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -236,8 +230,8 @@ class AuthControllerTest {
     void login_If_AuthRequest_Is_Not_Valid() throws Exception {
         User userEntity = userRepository.save(getUserEntity());
 
-        AuthRequest authRequest = getNotValidAuthRequest();
-        String contentAuthRequest = objectMapper.writeValueAsString(authRequest);
+        AuthLoginRequest authLoginRequest = getNotValidAuthRequest();
+        String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
 
         String endPoint = this.endPoint + "/login";
 
@@ -269,14 +263,13 @@ class AuthControllerTest {
         Assertions.assertEquals(expectedViolations, actualViolations);
     }
 
-    private UserAllFieldsDto getUserAllFieldsDto() {
-        return new UserAllFieldsDto(
-                1L,
+    private AuthRegisterRequest getAuthRegisterRequest() {
+        return new AuthRegisterRequest(
                 "TestFirstName",
                 "TestLastName",
                 "test@test.com",
                 "Test",
-                "root", null
+                "test"
         );
     }
 
@@ -288,30 +281,29 @@ class AuthControllerTest {
                 "test@test.com",
                 "test",
                 passwordEncoder.encode("root"),
+                Timestamp.from(Instant.now()),
                 Set.of(),
                 List.of());
     }
 
-    private UserAllFieldsDto getNotValidUserAllFieldsDto() {
-        return new UserAllFieldsDto(
-                1L,
+    private AuthRegisterRequest getNotValidAuthRegisterRequest() {
+        return new AuthRegisterRequest(
                 "test",
                 "test",
                 "test",
                 "test",
-                "t",
-                List.of()
+                "t"
         );
     }
 
-    private AuthRequest getValidAuthRequest() {
-        return new AuthRequest(
+    private AuthLoginRequest getValidAuthRequest() {
+        return new AuthLoginRequest(
                 "test@test.com",
                 "root");
     }
 
-    private AuthRequest getNotValidAuthRequest() {
-        return new AuthRequest(
+    private AuthLoginRequest getNotValidAuthRequest() {
+        return new AuthLoginRequest(
                 "t",
                 "t");
     }

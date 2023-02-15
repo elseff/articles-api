@@ -1,8 +1,8 @@
 package com.elseff.project.web.api.modules.article.controller;
 
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
+import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsCanBeNullDto;
+import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
 import com.elseff.project.web.api.modules.article.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,7 +38,7 @@ public class ArticleController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = ArticleAllFieldsDto.class))
+                            content = @Content(schema = @Schema(implementation = ArticleDto.class))
                     ),
             }
     )
@@ -52,15 +52,15 @@ public class ArticleController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = ArticleAllFieldsDto.class))
+                            content = @Content(schema = @Schema(implementation = ArticleDto.class))
                     ),
                     @ApiResponse(responseCode = "404", description = "Article not found", content = @Content),
             }
     )
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ArticleAllFieldsDto getSpecific(@Parameter(description = "Article id")
-                                           @PathVariable Long id) {
+    public ArticleDto getSpecific(@Parameter(description = "Article id")
+                                  @PathVariable Long id) {
         return articleService.findById(id);
     }
 
@@ -70,16 +70,16 @@ public class ArticleController {
                     @ApiResponse(
                             responseCode = "201",
                             description = "Article has been successfully added",
-                            content = @Content(schema = @Schema(implementation = ArticleAllFieldsDto.class))
+                            content = @Content(schema = @Schema(implementation = ArticleDto.class))
                     ),
                     @ApiResponse(responseCode = "400", description = "Article not valid", content = @Content),
             }
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ArticleAllFieldsDto addArticle(@Parameter(description = "Article title and description")
-                                          @RequestBody @Valid ArticleDto articleDto) {
-        return articleService.addArticle(articleDto);
+    public ArticleDto addArticle(@Parameter(description = "Article creation request", required = true)
+                                 @RequestBody @Valid ArticleCreationRequest articleCreationRequest) {
+        return articleService.addArticle(articleCreationRequest);
     }
 
     @Operation(summary = "Delete article by id",
@@ -100,7 +100,7 @@ public class ArticleController {
                     @ApiResponse(
                             responseCode = "200",
                             description = "Article has been successfully updated",
-                            content = @Content(schema = @Schema(implementation = ArticleAllFieldsCanBeNullDto.class))
+                            content = @Content(schema = @Schema(implementation = ArticleDto.class))
                     ),
                     @ApiResponse(responseCode = "400", description = "Article not valid", content = @Content),
                     @ApiResponse(responseCode = "404", description = "Article not found", content = @Content),
@@ -108,13 +108,11 @@ public class ArticleController {
     )
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ArticleDto updateArticle(@Parameter(description = "Updated article")
-                                    @RequestBody
-                                    @Valid
-                                            ArticleAllFieldsCanBeNullDto articleDto,
-                                    @Parameter(description = "Article id")
+    public ArticleDto updateArticle(@Parameter(description = "Article id")
                                     @PathVariable
-                                            Long id) {
-        return articleService.updateArticle(id, articleDto);
+                                            Long id,
+                                    @Parameter(description = "Article update request")
+                                    @RequestBody @Valid ArticleUpdateRequest updateRequest) {
+        return articleService.updateArticle(id, updateRequest);
     }
 }

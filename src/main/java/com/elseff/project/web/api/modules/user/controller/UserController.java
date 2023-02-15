@@ -1,8 +1,7 @@
 package com.elseff.project.web.api.modules.user.controller;
 
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsCanBeNullDto;
-import com.elseff.project.web.api.modules.user.dto.UserAllFieldsDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
+import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
 import com.elseff.project.web.api.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,7 +37,7 @@ public class UserController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = UserAllFieldsDto.class))
+                            content = @Content(schema = @Schema(implementation = UserDto.class))
                     ),
             }
     )
@@ -52,15 +51,15 @@ public class UserController {
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            content = @Content(schema = @Schema(implementation = UserAllFieldsDto.class))
+                            content = @Content(schema = @Schema(implementation = UserDto.class))
                     ),
                     @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
             }
     )
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserAllFieldsDto getSpecific(@Parameter(description = "User id")
-                                        @PathVariable Long id) {
+    public UserDto getSpecific(@Parameter(description = "User id")
+                               @PathVariable Long id) {
         return userService.getUserById(id);
     }
 
@@ -86,7 +85,7 @@ public class UserController {
                     @ApiResponse(
                             responseCode = "200",
                             description = "User has been successfully updated",
-                            content = @Content(schema = @Schema(implementation = UserAllFieldsCanBeNullDto.class))
+                            content = @Content(schema = @Schema(implementation = UserDto.class))
                     ),
                     @ApiResponse(responseCode = "400", description = "User not valid", content = @Content),
                     @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
@@ -94,13 +93,13 @@ public class UserController {
     )
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserAllFieldsDto updateUser(@Parameter(description = "Updated user")
-                                       @RequestBody
-                                       @Valid
-                                               UserAllFieldsCanBeNullDto userAllFieldsCanBeNullDto,
-                                       @Parameter(description = "User id")
-                                       @PathVariable
-                                               Long id) {
-        return userService.updateUser(id, userAllFieldsCanBeNullDto);
+    public UserDto updateUser(@Parameter(description = "Updated user")
+                              @RequestBody
+                              @Valid
+                                          UserUpdateRequest updateRequest,
+                              @Parameter(description = "User id")
+                              @PathVariable
+                                      Long id) {
+        return userService.updateUser(id, updateRequest);
     }
 }

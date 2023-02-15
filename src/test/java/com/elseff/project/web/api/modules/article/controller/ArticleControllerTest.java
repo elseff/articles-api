@@ -7,7 +7,7 @@ import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
+import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,6 +32,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,13 +173,12 @@ public class ArticleControllerTest {
     @DisplayName("Add article")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle() throws Exception {
-        ArticleDto contentArticle = new ArticleDto(
-                null,
-                "test add new article title",
-                "test add new article description",
-                null);
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("test add new article title")
+                .description("test add new article description")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = post(endPoint)
                 .content(requestBody)
@@ -188,7 +189,7 @@ public class ArticleControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        ArticleAllFieldsDto responseArticle = objectMapper.readValue(response, ArticleAllFieldsDto.class);
+        ArticleDto responseArticle = objectMapper.readValue(response, ArticleDto.class);
 
         String expectedArticleTitle = "test add new article title";
         String actualArticleTitle = responseArticle.getTitle();
@@ -204,9 +205,12 @@ public class ArticleControllerTest {
     @DisplayName("Add article if article is not valid")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void addArticle_If_Article_Is_Not_Valid() throws Exception {
-        ArticleDto contentArticle = new ArticleDto(null, "test", "test", "");
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("test")
+                .description("test")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = post(endPoint)
                 .content(requestBody)
@@ -282,7 +286,7 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(admin));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", null, null);
 
         String requestBody = objectMapper.writeValueAsString(contentArticle);
 
@@ -309,9 +313,12 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("updated title")
+                .description("updated description")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = patch(endPoint)
                 .content(requestBody)
@@ -341,9 +348,12 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(admin));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("updated title")
+                .description("updated description")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = patch(endPoint)
                 .content(requestBody)
@@ -368,9 +378,12 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        ArticleDto contentArticle = new ArticleDto(null, "test1", "test1", "");
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("test1")
+                .description("test1")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = patch(endPoint)
                 .content(requestBody)
@@ -406,9 +419,12 @@ public class ArticleControllerTest {
     void updateArticle_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
-        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", "");
+        ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
+                .title("updated title")
+                .description("updated description")
+                .build();
 
-        String requestBody = objectMapper.writeValueAsString(contentArticle);
+        String requestBody = objectMapper.writeValueAsString(articleCreationRequest);
 
         MockHttpServletRequestBuilder request = patch(endPoint)
                 .content(requestBody)
@@ -435,6 +451,7 @@ public class ArticleControllerTest {
                 "user@user.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(roleUser),
                 List.of());
     }
@@ -448,6 +465,7 @@ public class ArticleControllerTest {
                 "admin@admin.com",
                 "test",
                 "test",
+                Timestamp.from(Instant.now()),
                 Set.of(roleUser, roleAdmin),
                 List.of());
     }

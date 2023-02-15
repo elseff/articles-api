@@ -1,10 +1,7 @@
 package com.elseff.project.web.api.modules.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -13,9 +10,10 @@ import javax.validation.constraints.Size;
 @Setter
 @Getter
 @ToString
+@NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "User credentials request")
-public class AuthRequest {
+public class AuthLoginRequest {
 
     @Schema(description = "User email")
     @Email(message = "email should be valid")
