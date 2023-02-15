@@ -1,4 +1,4 @@
-FROM openjdk:15-alpine
+FROM openjdk:17-alpine
 
 EXPOSE 8080
 
