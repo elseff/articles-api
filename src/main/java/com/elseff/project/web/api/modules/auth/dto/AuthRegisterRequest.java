@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "User fore register request")
+@Schema(description = "User for register request")
 public class AuthRegisterRequest {
     @NotNull(message = "firstname shouldn't be a null")
     @Pattern(regexp = "([A-Z][a-zA-Z]*)", message = "firstname should be valid")

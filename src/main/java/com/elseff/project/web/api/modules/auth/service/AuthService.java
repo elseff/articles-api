@@ -4,15 +4,17 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
+import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,19 +30,13 @@ import java.util.Set;
 @Slf4j
 @Service
 @Validated
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthService {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
-
-    @Autowired
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.modelMapper = modelMapper;
-        this.passwordEncoder = passwordEncoder;
-    }
+    UserRepository userRepository;
+    RoleRepository roleRepository;
+    UserDtoMapper userDtoMapper;
+    PasswordEncoder passwordEncoder;
 
     public AuthResponse register(@Valid AuthRegisterRequest authRegisterRequest) {
         if (userRepository.existsByEmail(authRegisterRequest.getEmail())) {
@@ -48,7 +44,7 @@ public class AuthService {
             throw new AuthenticationException("User with email " + authRegisterRequest.getEmail() + " already exists");
         }
 
-        User user = modelMapper.map(authRegisterRequest, User.class);
+        User user = userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         Role userRole = roleRepository.getByName("ROLE_USER");
