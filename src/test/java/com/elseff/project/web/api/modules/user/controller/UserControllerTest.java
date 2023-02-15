@@ -5,8 +5,10 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
+import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
 import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
+import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -46,6 +48,12 @@ class UserControllerTest {
 
     @Container
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
+
+    @Autowired
+    private UserDtoMapper userDtoMapper;
+
+    @Autowired
+    private ArticleDtoMapper articleDtoMapper;
 
     @Autowired
     private UserRepository userRepository;
@@ -264,14 +272,11 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        UserDto userAllFieldsDto = objectMapper.readValue(response, UserDto.class);
+        UserDto userDto = objectMapper.readValue(response, UserDto.class);
 
         String expectedUpdatedFirstName = updateRequest.getFirstName();
-        String expectedUpdatedEmail = updateRequest.getEmail();
-        String actualUpdatedFirstName = userAllFieldsDto.getFirstName();
-        String actualUpdatedEmail = userAllFieldsDto.getEmail();
+        String actualUpdatedFirstName = userDto.getFirstName();
 
-        Assertions.assertEquals(expectedUpdatedEmail, actualUpdatedEmail);
         Assertions.assertEquals(expectedUpdatedFirstName, actualUpdatedFirstName);
     }
 

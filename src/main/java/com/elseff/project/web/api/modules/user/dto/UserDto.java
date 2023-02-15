@@ -11,6 +11,7 @@ import java.util.Set;
 
 @Getter
 @Setter
+@Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
