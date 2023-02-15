@@ -1,19 +1,22 @@
 package com.elseff.project.web.api.modules.article.service;
 
 import com.elseff.project.persistense.Article;
-import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsCanBeNullDto;
-import com.elseff.project.web.api.modules.article.dto.ArticleAllFieldsDto;
+import com.elseff.project.security.SecurityUtils;
+import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
+import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
+import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
 import com.elseff.project.web.api.modules.article.exception.SomeoneElseArticleException;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -21,81 +24,83 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ArticleService {
 
-    private final ArticleRepository articleRepository;
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+    ArticleRepository articleRepository;
+    RoleRepository roleRepository;
+    UserRepository userRepository;
 
-    private final ModelMapper modelMapper;
-
-    public ArticleService(ArticleRepository articleRepository, RoleRepository roleRepository, UserRepository userRepository, ModelMapper modelMapper) {
-        this.articleRepository = articleRepository;
-        this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
-    }
+    ArticleDtoMapper articleDtoMapper;
+    SecurityUtils securityUtils;
 
     public List<ArticleDto> getAllArticles() {
-        return articleRepository.findAll()
-                .stream()
-                .map(article -> modelMapper.map(article, ArticleDto.class))
-                .collect(Collectors.toList());
+        List<Article> articles = articleRepository.findAll();
+
+        return articleDtoMapper.mapListArticleEntityToDto(articles);
     }
 
-    public ArticleAllFieldsDto findById(Long id) {
-        return modelMapper.map(articleRepository.findById(id)
-                .orElseThrow(() -> new ArticleNotFoundException(id)), ArticleAllFieldsDto.class);
+    public ArticleDto findById(Long id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() ->
+                        new ArticleNotFoundException(id));
+
+        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
     public void deleteArticleById(Long id) {
-        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
-
-        Article articleFromDb = articleRepository.findById(id)
+        Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+        boolean currentUserIsAdmin = securityUtils.userIsAdmin(currentUser);
 
-        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
-        if (currentUser.getAuthorities().contains(roleAdmin)) {
+        if (currentUserIsAdmin) {
             log.info("delete article {} by admin {}", id, currentUser.getUsername());
             articleRepository.deleteById(id);
         } else {
-            if (articleFromDb.getAuthor().getEmail().equals(currentUser.getUsername())) {
+            if (article.getAuthor().getEmail().equals(currentUser.getUsername())) {
                 log.info("delete article {} by user {}", id, currentUser.getUsername());
                 articleRepository.deleteById(id);
             } else throw new SomeoneElseArticleException();
         }
     }
 
-    public ArticleAllFieldsDto addArticle(ArticleDto articleDto) {
-        UserDetails authUser = Objects.requireNonNull(AuthService.getCurrentUser());
+    public ArticleDto addArticle(ArticleCreationRequest articleCreationRequest) {
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
-        User author = userRepository.getByEmail(authUser.getUsername());
+        User author = userRepository.getByEmail(currentUser.getUsername());
 
-        Article article = modelMapper.map(articleDto, Article.class);
-        article.setDate(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new Date()));
-        article.setAuthor(author);
-        Article articleFromDb = articleRepository.save(article);
+        Article article = Article.builder()
+                .title(articleCreationRequest.getTitle())
+                .description(articleCreationRequest.getDescription())
+                .author(author)
+                .date(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new Date()))
+                .build();
+        article = articleRepository.save(article);
 
-        return modelMapper.map(articleFromDb, ArticleAllFieldsDto.class);
+        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
-    public ArticleDto updateArticle(Long id, ArticleAllFieldsCanBeNullDto articleDto) {
-        UserDetails authUser = Objects.requireNonNull(AuthService.getCurrentUser());
-
-        Article articleFromDb = articleRepository.findById(id)
+    public ArticleDto updateArticle(Long id, ArticleUpdateRequest updateRequest) {
+        Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
-        if (articleFromDb.getAuthor().getEmail().equals(authUser.getUsername())) {
-            if (articleDto.getTitle() != null) articleFromDb.setTitle(articleDto.getTitle());
-            if (articleDto.getDescription() != null) articleFromDb.setDescription(articleDto.getDescription());
-            articleRepository.save(articleFromDb);
-            log.info("updated article {} by user {}", articleFromDb.getId(), authUser.getUsername());
-            return modelMapper.map(articleFromDb, ArticleDto.class);
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+
+        if (article.getAuthor().getEmail().equals(currentUser.getUsername())) {
+            if (updateRequest.getTitle() != null)
+                article.setTitle(updateRequest.getTitle());
+            if (updateRequest.getDescription() != null)
+                article.setDescription(updateRequest.getDescription());
+            article = articleRepository.save(article);
+            log.info("updated article {} by user {}", article.getId(), currentUser.getUsername());
+
+            return articleDtoMapper.mapArticleEntityToDto(article);
         } else throw new SomeoneElseArticleException();
     }
 
