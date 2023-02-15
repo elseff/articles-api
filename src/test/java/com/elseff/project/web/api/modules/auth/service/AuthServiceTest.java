@@ -9,13 +9,13 @@ import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
+import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,8 +31,7 @@ class AuthServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private ModelMapper modelMapper;
-
+    private UserDtoMapper userDtoMapper;
     @Mock
     private RoleRepository roleRepository;
 
@@ -71,7 +70,7 @@ class AuthServiceTest {
 
         given(userRepository.existsByEmail(email)).willReturn(false);
         given(roleRepository.getByName("ROLE_USER")).willReturn(getRoleUser());
-        given(modelMapper.map(authRegisterRequest, User.class)).willReturn(user);
+        given(userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest)).willReturn(user);
         given(passwordEncoder.encode(authRegisterRequest.getPassword())).willReturn("test");
         given(userRepository.save(user)).willReturn(user);
 
@@ -85,11 +84,11 @@ class AuthServiceTest {
 
         verify(userRepository, times(1)).existsByEmail(anyString());
         verify(userRepository, times(1)).save(user);
-        verify(modelMapper, times(1)).map(authRegisterRequest, User.class);
+        verify(userDtoMapper, times(1)).mapAuthRequestToUserEntity(authRegisterRequest);
         verify(passwordEncoder, times(1)).encode(authRegisterRequest.getPassword());
         verify(roleRepository, times(1)).getByName(anyString());
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(modelMapper);
+        verifyNoMoreInteractions(userDtoMapper);
         verifyNoMoreInteractions(passwordEncoder);
         verifyNoMoreInteractions(roleRepository);
     }
