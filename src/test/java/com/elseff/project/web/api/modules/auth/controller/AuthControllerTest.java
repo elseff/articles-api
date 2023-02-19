@@ -8,6 +8,8 @@ import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,24 +43,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class AuthControllerTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
 
-    private final String endPoint = "/api/v1/auth";
+    final String endPoint = "/api/v1/auth";
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

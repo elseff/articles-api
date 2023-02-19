@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class ArticleDtoMapper {
+
     public ArticleDto mapArticleEntityToDto(Article article) {
         return ArticleDto.builder()
                 .id(article.getId())

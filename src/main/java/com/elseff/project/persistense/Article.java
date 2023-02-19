@@ -2,6 +2,7 @@ package com.elseff.project.persistense;
 
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -12,23 +13,25 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "article",schema = "public")
+@Table(name = "article", schema = "public")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Article {
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(name = "title", nullable = false)
-    private String title;
+    String title;
 
     @Column(name = "description", nullable = false)
-    private String description;
+    String description;
 
     @Column(name = "created_at", nullable = false)
-    private Timestamp createdAt;
+    Timestamp createdAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
-    private User author;
+    User author;
 }

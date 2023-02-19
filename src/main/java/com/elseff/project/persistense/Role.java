@@ -1,9 +1,7 @@
 package com.elseff.project.persistense;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -13,17 +11,20 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "role", schema = "public")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role implements GrantedAuthority {
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    Long id;
 
     @Column(name = "name", nullable = false, unique = true)
-    private String name;
+    String name;
 
     public Role(String name) {
         this.name = name;

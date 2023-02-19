@@ -10,6 +10,8 @@ import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.exception.AuthUserNotFoundException;
 import com.elseff.project.web.api.modules.auth.exception.AuthenticationException;
 import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,21 +24,22 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class AuthServiceTest {
 
     @InjectMocks
-    private AuthService service;
+    AuthService service;
 
     @Mock
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Mock
-    private UserDtoMapper userDtoMapper;
+    UserDtoMapper userDtoMapper;
     @Mock
-    private RoleRepository roleRepository;
+    RoleRepository roleRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {

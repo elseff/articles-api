@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,11 +24,12 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/api/v1/users")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "User controller", description = "User management")
 @CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
 public class UserController {
 
-    private final UserService userService;
+    UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
@@ -96,7 +99,7 @@ public class UserController {
     public UserDto updateUser(@Parameter(description = "Updated user")
                               @RequestBody
                               @Valid
-                                          UserUpdateRequest updateRequest,
+                                      UserUpdateRequest updateRequest,
                               @Parameter(description = "User id")
                               @PathVariable
                                       Long id) {

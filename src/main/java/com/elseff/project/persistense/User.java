@@ -1,6 +1,7 @@
 package com.elseff.project.persistense;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -13,33 +14,34 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "_user", schema = "public")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(name = "first_name", nullable = false)
-    private String firstName;
+    String firstName;
 
     @Column(name = "last_name", nullable = false)
-    private String lastName;
+    String lastName;
 
     @Column(name = "email")
-    private String email;
+    String email;
 
     @Column(name = "country", nullable = false)
-    private String country;
+    String country;
 
     @Column(name = "password", nullable = false)
-    private String password;
+    String password;
 
     @Column(name = "registration_date", nullable = false)
-    private Timestamp registrationDate;
+    Timestamp registrationDate;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
@@ -51,14 +53,13 @@ public class User {
                     name = "role_id",
                     referencedColumnName = "id"
             ))
-    private Set<Role> roles;
+    Set<Role> roles;
 
-    @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "author")
-    private List<Article> articles;
+    List<Article> articles;
 
     @PrePersist
-    private void init() {
+    void init() {
         this.registrationDate = Timestamp.from(Instant.now());
     }
 

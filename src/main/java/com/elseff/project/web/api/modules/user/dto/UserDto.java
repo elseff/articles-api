@@ -4,6 +4,7 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -16,22 +17,24 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDto {
-    private Long id;
 
-    private String firstName;
+    Long id;
 
-    private String lastName;
+    String firstName;
 
-    private String email;
+    String lastName;
 
-    private String country;
+    String email;
 
-    private String password;
+    String country;
 
-    private Timestamp registrationDate;
+    String password;
 
-    private Set<Role> roles;
+    Timestamp registrationDate;
 
-    private List<ArticleDto> articles;
+    Set<Role> roles;
+
+    List<ArticleDto> articles;
 }

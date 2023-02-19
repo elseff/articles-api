@@ -12,6 +12,8 @@ import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,27 +45,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ArticleControllerTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private ArticleRepository articleRepository;
+    ArticleRepository articleRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    RoleRepository roleRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
 
-    private final String endPoint = "/api/v1/articles";
+    final String endPoint = "/api/v1/articles";
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

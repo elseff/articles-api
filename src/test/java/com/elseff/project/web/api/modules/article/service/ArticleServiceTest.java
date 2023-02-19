@@ -14,7 +14,9 @@ import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
 import com.elseff.project.web.api.modules.article.exception.SomeoneElseArticleException;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
+import lombok.AccessLevel;
 import lombok.Cleanup;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,22 +38,23 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class ArticleServiceTest {
 
     @InjectMocks
-    private ArticleService service;
+    ArticleService service;
 
     @Mock
-    private ArticleRepository articleRepository;
+    ArticleRepository articleRepository;
 
     @Mock
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Mock
-    private ArticleDtoMapper articleDtoMapper;
+    ArticleDtoMapper articleDtoMapper;
 
     @Mock
-    private SecurityUtils securityUtils;
+    SecurityUtils securityUtils;
 
     @BeforeEach
     void setUp() {

@@ -11,6 +11,8 @@ import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
 import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,30 +46,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class UserControllerTest {
 
     @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
-    private UserDtoMapper userDtoMapper;
+    UserDtoMapper userDtoMapper;
 
     @Autowired
-    private ArticleDtoMapper articleDtoMapper;
+    ArticleDtoMapper articleDtoMapper;
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    RoleRepository roleRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
 
-    private final String endPoint = "/api/v1/users";
+    final String endPoint = "/api/v1/users";
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

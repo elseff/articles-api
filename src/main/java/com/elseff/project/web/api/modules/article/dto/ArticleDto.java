@@ -3,6 +3,7 @@ package com.elseff.project.web.api.modules.article.dto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
 
@@ -12,15 +13,16 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ArticleDto {
 
-    private Long id;
+    Long id;
 
-    private String title;
+    String title;
 
-    private String description;
+    String description;
 
-    private Timestamp createdAt;
+    Timestamp createdAt;
 
-    private UserDto author;
+    UserDto author;
 }

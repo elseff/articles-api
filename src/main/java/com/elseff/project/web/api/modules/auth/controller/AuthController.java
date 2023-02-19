@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.auth.controller;
 
-import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
+import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,11 +24,12 @@ import javax.validation.Valid;
 @Validated
 @RestController
 @RequestMapping("/api/v1/auth")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
 @Tag(name = "Authentication controller", description = "Registering and signing in to accounts")
 public class AuthController {
 
-    private final AuthService authService;
+    AuthService authService;
 
     @Autowired
     public AuthController(AuthService authService) {
