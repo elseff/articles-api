@@ -105,4 +105,19 @@ public class UserController {
                                       Long id) {
         return userService.updateUser(id, updateRequest);
     }
+
+    @Operation(summary = "User Profile",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User profile",
+                            content = @Content(schema = @Schema(implementation = UserDto.class))
+                    )
+            }
+    )
+    @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto getMe() {
+        return userService.getMe();
+    }
 }
