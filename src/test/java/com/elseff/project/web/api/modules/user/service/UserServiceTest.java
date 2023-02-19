@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -237,10 +235,12 @@ class UserServiceTest {
         UserDetailsImpl userDetails = getUserDetails();
 
         User userEntity = getUserEntity();
-        UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
-        userUpdateRequest.setFirstName("test1");
-        UserDto userDto = new UserDto();
-        userDto.setFirstName("test1");
+        UserUpdateRequest userUpdateRequest = UserUpdateRequest.builder()
+                .firstName("test1")
+                .build();
+        UserDto userDto = UserDto.builder()
+                .firstName("test1")
+                .build();
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(userEntity));
@@ -271,8 +271,9 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("testt");
+        UserUpdateRequest updateRequest = UserUpdateRequest.builder()
+                .firstName("testt")
+                .build();
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(getDifferentUserEntity()));
@@ -294,8 +295,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Update user if user is not found")
     void updateUser_If_User_Is_Not_Found() {
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("test1");
+        UserUpdateRequest updateRequest = UserUpdateRequest.builder()
+                .firstName("test1")
+                .build();
 
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
@@ -313,43 +315,37 @@ class UserServiceTest {
 
     @NotNull
     private UserDetailsImpl getUserDetails() {
-        return new UserDetailsImpl(
-                "test@test.com",
-                "test",
-                Set.of(getRoleUser(), getRoleAdmin())
-        );
+        return UserDetailsImpl.builder()
+                .email("test@test.com")
+                .password("test")
+                .grantedAuthorities(Set.of(getRoleUser(), getRoleAdmin()))
+                .build();
     }
 
     @NotNull
     private User getUserEntity() {
-        User value = new User(
-                1L,
-                "test",
-                "test",
-                "test@test.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(getRoleUser(), getRoleAdmin()),
-                List.of()
-        );
-        return value;
+        return User.builder()
+                .id(2L)
+                .firstName("test")
+                .lastName("test")
+                .email("test@test.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(getRoleUser(), getRoleAdmin()))
+                .build();
     }
 
     @NotNull
     private User getDifferentUserEntity() {
-        User value = new User(
-                2L,
-                "testt",
-                "testt",
-                "test1@test.com",
-                "testt",
-                "testt",
-                Timestamp.from(Instant.now()),
-                Set.of(getRoleUser()),
-                List.of()
-        );
-        return value;
+        return User.builder()
+                .id(2L)
+                .firstName("testt")
+                .lastName("testt")
+                .email("test1@test.com")
+                .country("testt")
+                .password("testt")
+                .roles(Set.of(getRoleUser()))
+                .build();
     }
 
     private Role getRoleAdmin() {

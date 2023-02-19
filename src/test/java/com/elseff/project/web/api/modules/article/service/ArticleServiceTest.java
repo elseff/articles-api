@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -130,7 +128,13 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
-        given(articleRepository.findById(anyLong())).willReturn(Optional.of(new Article(1L, "test", "test", null, getUserEntity())));
+        Article article = Article.builder()
+                .id(1L)
+                .title("test")
+                .description("test")
+                .author(getUserEntity())
+                .build();
+        given(articleRepository.findById(anyLong())).willReturn(Optional.of(article));
         willDoNothing().given(articleRepository).deleteById(anyLong());
 
         service.deleteArticleById(1L);
@@ -227,9 +231,9 @@ class ArticleServiceTest {
                 .author(user)
                 .title("test")
                 .build();
-        ArticleDto articleDto = new ArticleDto();
-        articleDto.setTitle("test1");
-
+        ArticleDto articleDto = ArticleDto.builder()
+                .title("test1")
+                .build();
         ArticleUpdateRequest articleUpdateRequest = ArticleUpdateRequest.builder()
                 .title("test1")
                 .build();
@@ -312,43 +316,37 @@ class ArticleServiceTest {
 
     @NotNull
     private UserDetailsImpl getUserDetails() {
-        return new UserDetailsImpl(
-                "test@test.com",
-                "test",
-                Set.of(getRoleUser(), getRoleAdmin())
-        );
+        return UserDetailsImpl.builder()
+                .email("test@test.com")
+                .password("test")
+                .grantedAuthorities(Set.of(getRoleUser(), getRoleAdmin()))
+                .build();
     }
 
     @NotNull
     private User getUserEntity() {
-        User value = new User(
-                1L,
-                "test",
-                "test",
-                "test@test.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(getRoleUser(), getRoleAdmin()),
-                List.of()
-        );
-        return value;
+        return User.builder()
+                .id(1L)
+                .firstName("test")
+                .lastName("test")
+                .email("test@test.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(getRoleUser(), getRoleAdmin()))
+                .build();
     }
 
     @NotNull
     private User getDifferentUserEntity() {
-        User value = new User(
-                2L,
-                "testt",
-                "testt",
-                "test1@test.com",
-                "testt",
-                "testt",
-                Timestamp.from(Instant.now()),
-                Set.of(getRoleUser()),
-                List.of()
-        );
-        return value;
+        return User.builder()
+                .id(2L)
+                .firstName("testt")
+                .lastName("testt")
+                .email("test1@test.com")
+                .country("testt")
+                .password("testt")
+                .roles(Set.of(getRoleUser()))
+                .build();
     }
 
     private Role getRoleAdmin() {

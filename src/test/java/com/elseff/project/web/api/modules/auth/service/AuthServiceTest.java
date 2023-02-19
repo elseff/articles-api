@@ -66,9 +66,10 @@ class AuthServiceTest {
     @Test
     void register() {
         String email = getAuthRegisterRequest().getEmail();
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword("test");
+        User user = User.builder()
+                .email(email)
+                .password("test")
+                .build();
         AuthRegisterRequest authRegisterRequest = getAuthRegisterRequest();
 
         given(userRepository.existsByEmail(email)).willReturn(false);
@@ -164,20 +165,20 @@ class AuthServiceTest {
     }
 
     private User getUserFromDb() {
-        User user = new User();
-        user.setPassword("test");
-        user.setEmail("test@test.com");
-        user.setCountry("test");
-        user.setFirstName("test");
-        user.setLastName("test");
-        return user;
+        return User.builder()
+                .firstName("test")
+                .lastName("test")
+                .email("test@test.com")
+                .country("test")
+                .password("test")
+                .build();
     }
 
     private AuthLoginRequest getAuthLoginRequest() {
-        AuthLoginRequest authLoginRequest = new AuthLoginRequest();
-        authLoginRequest.setEmail("test@test.com");
-        authLoginRequest.setPassword("test");
-        return authLoginRequest;
+        return AuthLoginRequest.builder()
+                .email("test@test.com")
+                .password("test")
+                .build();
     }
 
     private Role getRoleUser() {
@@ -185,12 +186,12 @@ class AuthServiceTest {
     }
 
     private AuthRegisterRequest getAuthRegisterRequest() {
-        AuthRegisterRequest authRegisterRequest = new AuthRegisterRequest();
-        authRegisterRequest.setFirstName("Test");
-        authRegisterRequest.setLastName("Test");
-        authRegisterRequest.setCountry("Test");
-        authRegisterRequest.setEmail("test@test.com");
-        authRegisterRequest.setPassword("test");
-        return authRegisterRequest;
+        return AuthRegisterRequest.builder()
+                .firstName("Test")
+                .lastName("Test")
+                .country("Test")
+                .email("test@test.com")
+                .password("test")
+                .build();
     }
 }

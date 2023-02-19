@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 
 @Setter
 @Getter
+@Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
