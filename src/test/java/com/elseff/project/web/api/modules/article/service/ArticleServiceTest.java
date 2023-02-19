@@ -157,8 +157,14 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(false);
+        Article article = Article.builder()
+                .id(1L)
+                .title("test")
+                .description("test")
+                .author(getDifferentUserEntity())
+                .build();
         given(articleRepository.findById(anyLong()))
-                .willReturn(Optional.of(new Article(1L, "test", "test", null, getDifferentUserEntity())));
+                .willReturn(Optional.of(article));
 
         SomeoneElseArticleException exception = Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.deleteArticleById(1L));
 
@@ -230,6 +236,7 @@ class ArticleServiceTest {
         Article article = Article.builder()
                 .author(user)
                 .title("test")
+                .edited(false)
                 .build();
         ArticleDto articleDto = ArticleDto.builder()
                 .title("test1")

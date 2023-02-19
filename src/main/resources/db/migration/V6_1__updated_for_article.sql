@@ -1,0 +1,5 @@
+ALTER TABLE article
+ADD COLUMN edited BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE article
+ADD COLUMN updated_at TIMESTAMP;
