@@ -29,12 +29,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -267,47 +264,46 @@ class AuthControllerTest {
     }
 
     private AuthRegisterRequest getAuthRegisterRequest() {
-        return new AuthRegisterRequest(
-                "TestFirstName",
-                "TestLastName",
-                "test@test.com",
-                "Test",
-                "test"
-        );
+        return AuthRegisterRequest.builder()
+                .firstName("TestFirstName")
+                .lastName("TestLastName")
+                .email("test@test.com")
+                .country("Test")
+                .password("test")
+                .build();
     }
 
     private User getUserEntity() {
-        return new User(
-                null,
-                "test",
-                "test",
-                "test@test.com",
-                "test",
-                passwordEncoder.encode("root"),
-                Timestamp.from(Instant.now()),
-                Set.of(),
-                List.of());
+        return User.builder()
+                .firstName("test")
+                .lastName("test")
+                .email("test@test.com")
+                .country("test")
+                .password(passwordEncoder.encode("root"))
+                .build();
     }
 
     private AuthRegisterRequest getNotValidAuthRegisterRequest() {
-        return new AuthRegisterRequest(
-                "test",
-                "test",
-                "test",
-                "test",
-                "t"
-        );
+        return AuthRegisterRequest.builder()
+                .firstName("test")
+                .lastName("test")
+                .email("test")
+                .country("test")
+                .password("t")
+                .build();
     }
 
     private AuthLoginRequest getValidAuthRequest() {
-        return new AuthLoginRequest(
-                "test@test.com",
-                "root");
+        return AuthLoginRequest.builder()
+                .email("test@test.com")
+                .password("root")
+                .build();
     }
 
     private AuthLoginRequest getNotValidAuthRequest() {
-        return new AuthLoginRequest(
-                "t",
-                "t");
+        return AuthLoginRequest.builder()
+                .email("t")
+                .password("t")
+                .build();
     }
 }

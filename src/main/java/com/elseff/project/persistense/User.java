@@ -31,7 +31,7 @@ public class User {
     @Column(name = "last_name", nullable = false)
     String lastName;
 
-    @Column(name = "email")
+    @Column(name = "email", nullable = false, unique = true)
     String email;
 
     @Column(name = "country", nullable = false)
@@ -40,8 +40,11 @@ public class User {
     @Column(name = "password", nullable = false)
     String password;
 
-    @Column(name = "registration_date", nullable = false)
+    @Column(name = "registration_date", nullable = false, updatable = false)
     Timestamp registrationDate;
+
+    @Column(name = "updated_at")
+    Timestamp updatedAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",

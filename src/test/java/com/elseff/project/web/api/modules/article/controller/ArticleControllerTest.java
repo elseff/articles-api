@@ -34,8 +34,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -289,7 +287,10 @@ public class ArticleControllerTest {
         Article articleFromDb = articleRepository.save(getArticle(admin));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
-        ArticleDto contentArticle = new ArticleDto(null, "updated title", "updated description", null, null);
+        ArticleDto contentArticle = ArticleDto.builder()
+                .title("updated title")
+                .description("updatedDescription")
+                .build();
 
         String requestBody = objectMapper.writeValueAsString(contentArticle);
 
@@ -439,37 +440,37 @@ public class ArticleControllerTest {
     }
 
     private Article getArticle(User userFromDb) {
-        return new Article(null,
-                "test article",
-                "test",
-                Timestamp.from(Instant.now()),
-                userFromDb);
+        return Article.builder()
+                .title("test article")
+                .description("test")
+                .author(userFromDb)
+                .build();
     }
 
     private User getUser() {
         Role roleUser = roleRepository.getByName("ROLE_USER");
-        return new User(1L,
-                "user",
-                "user",
-                "user@user.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(roleUser),
-                List.of());
+
+        return User.builder()
+                .firstName("user")
+                .lastName("user")
+                .email("user@user.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(roleUser))
+                .build();
     }
 
     private User getAdmin() {
         Role roleUser = roleRepository.getByName("ROLE_USER");
         Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
-        return new User(2L,
-                "admin",
-                "admin",
-                "admin@admin.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(roleUser, roleAdmin),
-                List.of());
+
+        return User.builder()
+                .firstName("admin")
+                .lastName("admin")
+                .email("admin@admin.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(roleUser, roleAdmin))
+                .build();
     }
 }

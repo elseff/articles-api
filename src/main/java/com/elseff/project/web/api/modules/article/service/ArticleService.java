@@ -97,6 +97,10 @@ public class ArticleService {
                 article.setTitle(updateRequest.getTitle());
             if (updateRequest.getDescription() != null)
                 article.setDescription(updateRequest.getDescription());
+            if (article.getEdited() == false)
+                article.setEdited(true);
+
+            article.setUpdatedAt(Timestamp.from(Instant.now()));
             article = articleRepository.save(article);
             log.info("updated article {} by user {}", article.getId(), currentUser.getUsername());
 

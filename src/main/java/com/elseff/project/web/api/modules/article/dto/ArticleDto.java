@@ -24,5 +24,9 @@ public class ArticleDto {
 
     Timestamp createdAt;
 
+    Boolean edited;
+
+    Timestamp updatedAt;
+
     UserDto author;
 }

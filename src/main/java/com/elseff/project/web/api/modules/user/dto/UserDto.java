@@ -34,6 +34,8 @@ public class UserDto {
 
     Timestamp registrationDate;
 
+    Timestamp updatedAt;
+
     Set<Role> roles;
 
     List<ArticleDto> articles;

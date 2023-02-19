@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,6 +98,7 @@ public class UserService {
             if (updateRequest.getCountry() != null)
                 user.setCountry(updateRequest.getCountry());
 
+            user.setUpdatedAt(Timestamp.from(Instant.now()));
             userRepository.save(user);
             log.info("updated user profile {}", user.getEmail());
 

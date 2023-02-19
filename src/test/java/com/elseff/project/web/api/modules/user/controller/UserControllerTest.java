@@ -32,8 +32,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -367,42 +365,42 @@ class UserControllerTest {
 
     private User getUser() {
         Role roleUser = roleRepository.getByName("ROLE_USER");
-        return new User(1L,
-                "user",
-                "user",
-                "user@user.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(roleUser),
-                List.of());
+        return User.builder()
+                .id(1L)
+                .firstName("user")
+                .lastName("user")
+                .email("user@user.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(roleUser))
+                .build();
     }
 
     private User getAdmin() {
         Role roleUser = roleRepository.getByName("ROLE_USER");
         Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
-        return new User(2L,
-                "admin",
-                "admin",
-                "admin@admin.com",
-                "test",
-                "test",
-                Timestamp.from(Instant.now()),
-                Set.of(roleUser, roleAdmin),
-                List.of());
+        return User.builder()
+                .id(2L)
+                .firstName("admin")
+                .lastName("admin")
+                .email("admin@admin.com")
+                .country("test")
+                .password("test")
+                .roles(Set.of(roleUser, roleAdmin))
+                .build();
     }
 
     private UserUpdateRequest getUserUpdateRequest() {
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("NewTest");
-        updateRequest.setEmail("test1@test.com");
-        return updateRequest;
+        return UserUpdateRequest.builder()
+                .firstName("NewTest")
+                .email("test1@test.com")
+                .build();
     }
 
     private UserUpdateRequest getNotValidUserUpdateRequest() {
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("test1");
-        updateRequest.setEmail("test");
-        return updateRequest;
+        return UserUpdateRequest.builder()
+                .firstName("test1")
+                .email("test")
+                .build();
     }
 }

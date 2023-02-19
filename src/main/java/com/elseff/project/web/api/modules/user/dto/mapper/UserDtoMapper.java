@@ -20,6 +20,7 @@ public class UserDtoMapper {
                 .email(user.getEmail())
                 .country(user.getCountry())
                 .registrationDate(user.getRegistrationDate())
+                .updatedAt(user.getUpdatedAt())
                 .articles(user.getArticles()
                         .stream()
                         .map(articleEntity ->
