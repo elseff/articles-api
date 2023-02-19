@@ -363,6 +363,30 @@ class UserControllerTest {
         Assertions.assertEquals(expectedMessage, actualMessage);
     }
 
+    @Test
+    @DisplayName("Get me")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void getMe() throws Exception {
+        String endPoint = this.endPoint + "/me";
+
+        MockHttpServletRequestBuilder request = get(endPoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8);
+
+        String response = mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        UserDto me = objectMapper.readValue(response, UserDto.class);
+
+        Assertions.assertNotNull(me);
+
+        String expectedMeEmail = "user@user.com";
+        String actualMeEmail = me.getEmail();
+
+        Assertions.assertEquals(expectedMeEmail, actualMeEmail);
+    }
+
     private User getUser() {
         Role roleUser = roleRepository.getByName("ROLE_USER");
         return User.builder()

@@ -313,6 +313,37 @@ class UserServiceTest {
         verifyNoMoreInteractions(userRepository);
     }
 
+    @Test
+    @DisplayName("Get me")
+    void getMe() {
+        @Cleanup
+        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
+        UserDetailsImpl userDetails = getUserDetails();
+        User user = getUserEntity();
+        UserDto userDto = UserDto.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .build();
+        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
+        given(userRepository.getByEmail(userDetails.getEmail())).willReturn(user);
+        given(userDtoMapper.mapUserEntityToDtoForAdmin(any(User.class))).willReturn(userDto);
+
+        UserDto me = service.getMe();
+
+        Assertions.assertNotNull(userDto);
+
+        String expectedUserEmail = "test@test.com";
+        String actualUserEmail = me.getEmail();
+
+        verify(userRepository, times(1)).getByEmail(anyString());
+        verify(userDtoMapper, times(1)).mapUserEntityToDtoForAdmin(any(User.class));
+        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userDtoMapper);
+        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
+        serviceMockedStatic.verifyNoMoreInteractions();
+    }
+
     @NotNull
     private UserDetailsImpl getUserDetails() {
         return UserDetailsImpl.builder()

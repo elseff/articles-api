@@ -108,4 +108,11 @@ public class UserService {
             throw new SomeoneElseUserProfileException();
     }
 
+    public UserDto getMe(){
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+        User user = userRepository.getByEmail(currentUser.getUsername());
+
+        UserDto userDto = userDtoMapper.mapUserEntityToDtoForAdmin(user);
+        return userDto;
+    }
 }
