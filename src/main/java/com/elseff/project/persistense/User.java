@@ -16,7 +16,7 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", schema = "public")
+@Table(name = "_user", schema = "public")
 public class User {
     @Id
     @Column(name = "id", nullable = false)
@@ -42,7 +42,7 @@ public class User {
     private Timestamp registrationDate;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "users_roles",
+    @JoinTable(name = "user_role",
             joinColumns = @JoinColumn(
                     name = "user_id",
                     referencedColumnName = "id"

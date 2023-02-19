@@ -4,6 +4,8 @@ import com.elseff.project.web.api.modules.user.dto.UserDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
+import java.sql.Timestamp;
+
 @Getter
 @Setter
 @Builder
@@ -18,7 +20,7 @@ public class ArticleDto {
 
     private String description;
 
-    private String date;
+    private Timestamp createdAt;
 
     private UserDto author;
 }

@@ -15,7 +15,7 @@ public class ArticleDtoMapper {
                 .id(article.getId())
                 .title(article.getTitle())
                 .description(article.getDescription())
-                .date(article.getDate())
+                .createdAt(article.getCreatedAt())
                 .author(UserDto.builder()
                         .id(article.getAuthor().getId())
                         .firstName(article.getAuthor().getFirstName())

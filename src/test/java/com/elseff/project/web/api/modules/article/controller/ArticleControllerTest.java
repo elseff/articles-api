@@ -439,7 +439,7 @@ public class ArticleControllerTest {
         return new Article(null,
                 "test article",
                 "test",
-                "",
+                Timestamp.from(Instant.now()),
                 userFromDb);
     }
 

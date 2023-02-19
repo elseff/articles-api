@@ -15,7 +15,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "roles", schema = "public")
+@Table(name = "role", schema = "public")
 public class Role implements GrantedAuthority {
     @Id
     @Column(name = "id", nullable = false)

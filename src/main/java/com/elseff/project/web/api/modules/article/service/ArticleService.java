@@ -20,7 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +81,7 @@ public class ArticleService {
                 .title(articleCreationRequest.getTitle())
                 .description(articleCreationRequest.getDescription())
                 .author(author)
-                .date(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new Date()))
+                .createdAt(Timestamp.from(Instant.now()))
                 .build();
         article = articleRepository.save(article);
 

@@ -4,6 +4,7 @@ package com.elseff.project.persistense;
 import lombok.*;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Getter
@@ -11,7 +12,7 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "articles")
+@Table(name = "article",schema = "public")
 public class Article {
     @Id
     @Column(name = "id", nullable = false)
@@ -24,8 +25,8 @@ public class Article {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name = "date", nullable = false)
-    private String date;
+    @Column(name = "created_at", nullable = false)
+    private Timestamp createdAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
