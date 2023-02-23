@@ -27,7 +27,7 @@ import java.util.List;
 @RequestMapping("/api/v1/articles")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Article controller", description = "Article management")
-@CrossOrigin(origins = {"http://192.168.100.4:4200", "http://localhost:4200"})
+@CrossOrigin(origins = {"http://192.168.100.3:4200", "http://localhost:4200"})
 public class ArticleController {
 
     ArticleService articleService;
