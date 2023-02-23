@@ -3,6 +3,7 @@ package com.elseff.project.web.api.modules.auth.controller;
 import com.elseff.project.exception.handling.dto.Violation;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.UserRepository;
+import com.elseff.project.security.JwtProvider;
 import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
@@ -10,7 +11,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +56,9 @@ class AuthControllerTest {
     ObjectMapper objectMapper;
 
     @Autowired
+    JwtProvider jwtProvider;
+
+    @Autowired
     MockMvc mockMvc;
 
     final String endPoint = "/api/v1/auth";
@@ -79,6 +82,7 @@ class AuthControllerTest {
         Assertions.assertNotNull(passwordEncoder);
         Assertions.assertNotNull(userRepository);
         Assertions.assertNotNull(objectMapper);
+        Assertions.assertNotNull(jwtProvider);
         Assertions.assertNotNull(mockMvc);
     }
 
@@ -180,8 +184,7 @@ class AuthControllerTest {
 
         AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
 
-        String expectedAuthToken = Base64.encodeBase64String(
-                (authLoginRequest.getEmail() + ":" + authLoginRequest.getPassword()).getBytes(StandardCharsets.UTF_8));
+        String expectedAuthToken = jwtProvider.generateToken(authLoginRequest.getEmail());
         String actualAuthToken = authResponse.getToken();
 
         Assertions.assertEquals(expectedAuthToken, actualAuthToken);

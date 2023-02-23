@@ -4,6 +4,7 @@ import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
+import com.elseff.project.security.JwtProvider;
 import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.auth.dto.AuthResponse;
@@ -35,11 +36,15 @@ class AuthServiceTest {
 
     @Mock
     UserDtoMapper userDtoMapper;
+
     @Mock
     RoleRepository roleRepository;
 
     @Mock
     PasswordEncoder passwordEncoder;
+
+    @Mock
+    JwtProvider jwtProvider;
 
     @BeforeEach
     void setUp() {
@@ -77,6 +82,7 @@ class AuthServiceTest {
         given(userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest)).willReturn(user);
         given(passwordEncoder.encode(authRegisterRequest.getPassword())).willReturn("test");
         given(userRepository.save(user)).willReturn(user);
+        given(jwtProvider.generateToken(anyString())).willReturn("token");
 
         AuthResponse authResponse = service.register(authRegisterRequest);
 
@@ -91,10 +97,12 @@ class AuthServiceTest {
         verify(userDtoMapper, times(1)).mapAuthRequestToUserEntity(authRegisterRequest);
         verify(passwordEncoder, times(1)).encode(authRegisterRequest.getPassword());
         verify(roleRepository, times(1)).getByName(anyString());
+        verify(jwtProvider, times(1)).generateToken(anyString());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(userDtoMapper);
         verifyNoMoreInteractions(passwordEncoder);
         verifyNoMoreInteractions(roleRepository);
+        verifyNoMoreInteractions(jwtProvider);
     }
 
     @Test
@@ -148,6 +156,7 @@ class AuthServiceTest {
         given(userRepository.existsByEmail(email)).willReturn(true);
         given(userRepository.getByEmail(email)).willReturn(userFromDb);
         given(passwordEncoder.matches(authLoginRequest.getPassword(), userFromDb.getPassword())).willReturn(true);
+        given(jwtProvider.generateToken(anyString())).willReturn("token");
 
         AuthResponse login = service.login(authLoginRequest);
 
@@ -160,6 +169,7 @@ class AuthServiceTest {
         verify(userRepository, times(1)).existsByEmail(email);
         verify(userRepository, times(1)).getByEmail(email);
         verify(passwordEncoder, times(1)).matches(authLoginRequest.getPassword(), userFromDb.getPassword());
+        verify(jwtProvider, times(1)).generateToken(anyString());
         verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(passwordEncoder);
     }

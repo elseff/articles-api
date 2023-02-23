@@ -28,5 +28,8 @@ server:
     include-message: always
     include-binding-errors: never
     include-stacktrace: never
+    include-exception: true
     whitelabel:
       enabled: true
+jwt:
+  secret: 'ZWxzZWZmd2lsc29u'
