@@ -38,8 +38,14 @@ public class ArticleService {
     ArticleDtoMapper articleDtoMapper;
     SecurityUtils securityUtils;
 
-    public List<ArticleDto> getAllArticles() {
+    public List<ArticleDto> findAll() {
         List<Article> articles = articleRepository.findAll();
+
+        return articleDtoMapper.mapListArticleEntityToDto(articles);
+    }
+
+    public List<ArticleDto> findAllByAuthorId(Long authorId) {
+        List<Article> articles = articleRepository.findAllByAuthorId(authorId);
 
         return articleDtoMapper.mapListArticleEntityToDto(articles);
     }

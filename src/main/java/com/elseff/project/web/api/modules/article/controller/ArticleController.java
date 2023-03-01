@@ -11,9 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +24,7 @@ import java.util.List;
 @Slf4j
 @Validated
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/articles")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Article controller", description = "Article management")
@@ -31,11 +32,6 @@ import java.util.List;
 public class ArticleController {
 
     ArticleService articleService;
-
-    @Autowired
-    public ArticleController(ArticleService articleService) {
-        this.articleService = articleService;
-    }
 
     @Operation(summary = "Get all articles",
             responses = {
@@ -47,8 +43,11 @@ public class ArticleController {
     )
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ArticleDto> getArticles() {
-        return articleService.getAllArticles();
+    public List<ArticleDto> findAll(@Parameter(description = "author id")
+                                    @RequestParam(required = false, name = "authorId") Long authorId) {
+        return authorId == null
+                ? articleService.findAll()
+                : articleService.findAllByAuthorId(authorId);
     }
 
     @Operation(summary = "Get specific article by id",
@@ -62,8 +61,8 @@ public class ArticleController {
     )
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ArticleDto getSpecific(@Parameter(description = "Article id")
-                                  @PathVariable Long id) {
+    public ArticleDto findById(@Parameter(description = "Article id", required = true)
+                               @PathVariable Long id) {
         return articleService.findById(id);
     }
 
@@ -93,7 +92,7 @@ public class ArticleController {
     )
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteArticle(@Parameter(description = "Article id")
+    public void deleteArticle(@Parameter(description = "Article id", required = true)
                               @PathVariable Long id) {
         articleService.deleteArticleById(id);
     }
@@ -111,10 +110,10 @@ public class ArticleController {
     )
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ArticleDto updateArticle(@Parameter(description = "Article id")
+    public ArticleDto updateArticle(@Parameter(description = "Article id", required = true)
                                     @PathVariable
                                             Long id,
-                                    @Parameter(description = "Article update request")
+                                    @Parameter(description = "Article update request", required = true)
                                     @RequestBody @Valid ArticleUpdateRequest updateRequest) {
         return articleService.updateArticle(id, updateRequest);
     }

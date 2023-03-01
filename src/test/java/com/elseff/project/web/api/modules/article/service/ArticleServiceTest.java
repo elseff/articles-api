@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 class ArticleServiceTest {
 
     @InjectMocks
-    ArticleService service;
+    ArticleService articleService;
 
     @Mock
     ArticleRepository articleRepository;
@@ -60,8 +60,8 @@ class ArticleServiceTest {
     }
 
     @Test
-    @DisplayName("Get all articles")
-    void getAllArticles() {
+    @DisplayName("Find all articles")
+    void findAllArticles() {
         given(articleDtoMapper.mapListArticleEntityToDto(any())).willReturn(List.of(
                 new ArticleDto(),
                 new ArticleDto(),
@@ -73,7 +73,7 @@ class ArticleServiceTest {
                 new Article()
         ));
 
-        List<ArticleDto> allArticles = service.getAllArticles();
+        List<ArticleDto> allArticles = articleService.findAll();
 
         int expectedListSize = 3;
         int actualListSize = allArticles.size();
@@ -87,14 +87,40 @@ class ArticleServiceTest {
     }
 
     @Test
-    @DisplayName("Get article")
+    void findAllByAuthorId() {
+        given(articleRepository.findAllByAuthorId(anyLong())).willReturn(List.of(
+                new Article(),
+                new Article(),
+                new Article()
+        ));
+        given(articleDtoMapper.mapListArticleEntityToDto(any())).willReturn(List.of(
+                new ArticleDto(),
+                new ArticleDto(),
+                new ArticleDto()
+        ));
+
+        List<ArticleDto> articledByAuthorId = articleService.findAllByAuthorId(1L);
+
+        int expectedListSize = 3;
+        int actualListSize = articledByAuthorId.size();
+
+        Assertions.assertEquals(expectedListSize, actualListSize);
+
+        verify(articleRepository, times(1)).findAllByAuthorId(anyLong());
+        verify(articleDtoMapper, times(1)).mapListArticleEntityToDto(any());
+        verifyNoMoreInteractions(articleRepository);
+        verifyNoMoreInteractions(articleDtoMapper);
+    }
+
+    @Test
+    @DisplayName("Find article")
     void findById() {
         Article articleFromDb = new Article();
 
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
         given(articleDtoMapper.mapArticleEntityToDto(any(Article.class))).willReturn(new ArticleDto());
 
-        ArticleDto article = service.findById(1L);
+        ArticleDto article = articleService.findById(1L);
         Assertions.assertNotNull(article);
 
         verify(articleRepository, times(1)).findById(anyLong());
@@ -104,11 +130,11 @@ class ArticleServiceTest {
     }
 
     @Test
-    @DisplayName("Get article if article is not found")
+    @DisplayName("Find article if article is not found")
     void findById_If_Article_Is_Not_Found() {
         given(articleRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.findById(1L));
+        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> articleService.findById(1L));
 
         String expectedMessage = "could not found article 1";
         String actualMessage = articleNotFoundException.getMessage();
@@ -137,7 +163,7 @@ class ArticleServiceTest {
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(article));
         willDoNothing().given(articleRepository).deleteById(anyLong());
 
-        service.deleteArticleById(1L);
+        articleService.deleteArticleById(1L);
 
         verify(articleRepository, times(1)).deleteById(anyLong());
         verify(articleRepository, times(1)).findById(anyLong());
@@ -166,7 +192,7 @@ class ArticleServiceTest {
         given(articleRepository.findById(anyLong()))
                 .willReturn(Optional.of(article));
 
-        SomeoneElseArticleException exception = Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.deleteArticleById(1L));
+        SomeoneElseArticleException exception = Assertions.assertThrows(SomeoneElseArticleException.class, () -> articleService.deleteArticleById(1L));
 
         String expectedMessage = "It's someone else's article. You can't modify her";
         String actualMessage = exception.getMessage();
@@ -186,7 +212,7 @@ class ArticleServiceTest {
     void deleteArticleById_If_Article_Does_Not_Exists() {
         given(articleRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> service.deleteArticleById(1L));
+        ArticleNotFoundException articleNotFoundException = Assertions.assertThrows(ArticleNotFoundException.class, () -> articleService.deleteArticleById(1L));
 
         String expectedMessage = "could not found article 1";
         String actualMessage = articleNotFoundException.getMessage();
@@ -213,7 +239,7 @@ class ArticleServiceTest {
                 .description("Test Description")
                 .build();
 
-        ArticleDto addedArticle = service.addArticle(article);
+        ArticleDto addedArticle = articleService.addArticle(article);
 
         Assertions.assertNotNull(addedArticle);
 
@@ -250,7 +276,7 @@ class ArticleServiceTest {
         given(articleRepository.save(article)).willReturn(article);
         given(articleDtoMapper.mapArticleEntityToDto(any(Article.class))).willReturn(articleDto);
 
-        ArticleDto updatedArticle = service.updateArticle(1L, articleUpdateRequest);
+        ArticleDto updatedArticle = articleService.updateArticle(1L, articleUpdateRequest);
 
         String expectedTitle = "test1";
         String actualTitle = updatedArticle.getTitle();
@@ -287,7 +313,7 @@ class ArticleServiceTest {
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(article));
 
         SomeoneElseArticleException exception =
-                Assertions.assertThrows(SomeoneElseArticleException.class, () -> service.updateArticle(1L, articleUpdateRequest));
+                Assertions.assertThrows(SomeoneElseArticleException.class, () -> articleService.updateArticle(1L, articleUpdateRequest));
 
         String expectedMessage = "It's someone else's article. You can't modify her";
         String actualMessage = exception.getMessage();
@@ -310,7 +336,7 @@ class ArticleServiceTest {
         given(articleRepository.findById(anyLong())).willReturn(Optional.empty());
 
         ArticleNotFoundException articleNotFoundException =
-                Assertions.assertThrows(ArticleNotFoundException.class, () -> service.updateArticle(1L, articleUpdateRequest));
+                Assertions.assertThrows(ArticleNotFoundException.class, () -> articleService.updateArticle(1L, articleUpdateRequest));
 
         String expectedMessage = "could not found article 1";
         String actualMessage = articleNotFoundException.getMessage();
