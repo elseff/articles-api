@@ -27,7 +27,6 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@CrossOrigin(origins = {"http://192.168.100.3:4200", "http://localhost:4200"})
 @Tag(name = "Authentication controller", description = "Registering and signing in to accounts")
 public class AuthController {
 

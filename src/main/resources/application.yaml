@@ -31,5 +31,11 @@ server:
     include-exception: true
     whitelabel:
       enabled: true
+
 jwt:
   secret: 'ZWxzZWZmd2lsc29u'
+
+allowed:
+  origins:
+    http://192.168.100.3:4200
+    http://localhost:4200
