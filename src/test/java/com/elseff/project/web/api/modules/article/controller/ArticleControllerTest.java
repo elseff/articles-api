@@ -105,9 +105,9 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @DisplayName("Get all Articles")
+    @DisplayName("Find all Articles")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    void getArticles() throws Exception {
+    void findAll() throws Exception {
         User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
         articleRepository.save(getArticle(currentAuthenticatedUser));
         articleRepository.save(getArticle(currentAuthenticatedUser));
@@ -132,9 +132,39 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @DisplayName("Get article")
+    @DisplayName("Find all articles by author id")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    void getArticleById() throws Exception {
+    void findAllByAuthorId() throws Exception {
+        User user = userRepository.getByEmail(getUser().getEmail());
+        User admin = userRepository.getByEmail(getAdmin().getEmail());
+
+        //saving 2 article with author user and 1 article with author admin
+        articleRepository.save(getArticle(user));
+        articleRepository.save(getArticle(user));
+        articleRepository.save(getArticle(admin));
+
+        MockHttpServletRequestBuilder request = get(endPoint)
+                .param("authorId", user.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8);
+
+        String response = mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<Article> articles = objectMapper.readValue(response, new TypeReference<>() {
+        });
+
+        int expectedListSize = 2;
+        int actualListSize = articles.size();
+
+        Assertions.assertEquals(expectedListSize, actualListSize);
+    }
+
+    @Test
+    @DisplayName("Find article")
+    @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void findById() throws Exception {
         User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
         Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
@@ -157,9 +187,9 @@ public class ArticleControllerTest {
     }
 
     @Test
-    @DisplayName("Get article if article is not found")
+    @DisplayName("Find article if article is not found")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    void getArticleById_If_Article_Is_Not_Found() throws Exception {
+    void FindArticleById_If_Article_Is_Not_Found() throws Exception {
         String endPoint = this.endPoint + "/" + 0;
 
         MockHttpServletRequestBuilder request = get(endPoint)
