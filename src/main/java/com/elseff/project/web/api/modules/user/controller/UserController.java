@@ -28,7 +28,6 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "User controller", description = "User management")
-@CrossOrigin(origins = {"http://192.168.100.3:4200", "http://localhost:4200"})
 public class UserController {
 
     UserService userService;
