@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.auth.service;
 
 import com.elseff.project.persistense.RoleEntity;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.JwtProvider;
@@ -51,12 +51,12 @@ public class AuthService {
         Set<RoleEntity> roles = new HashSet<>();
         roles.add(roleUser);
 
-        User user = userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest);
+        UserEntity user = userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(roles);
 
-        User userFromDb = userRepository.save(user);
+        UserEntity userFromDb = userRepository.save(user);
         log.info("User with email {} has been successfully registered", userFromDb.getEmail());
         String token = jwtProvider.generateToken(user.getEmail());
 
@@ -70,7 +70,7 @@ public class AuthService {
             log.warn("User with email {} is not found", authLoginRequest.getEmail());
             throw new AuthUserNotFoundException("User with email " + authLoginRequest.getEmail() + " is not found");
         } else {
-            User userFromDb = userRepository.getByEmail(authLoginRequest.getEmail());
+            UserEntity userFromDb = userRepository.getByEmail(authLoginRequest.getEmail());
 
             String loginRequestPassword = authLoginRequest.getPassword();
             String email = authLoginRequest.getEmail();

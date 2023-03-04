@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.article.service;
 
 import com.elseff.project.persistense.ArticleEntity;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -72,7 +72,7 @@ public class ArticleService {
     public ArticleEntity addArticle(ArticleCreationRequest articleCreationRequest) {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
-        User author = userRepository.getByEmail(currentUser.getUsername());
+        UserEntity author = userRepository.getByEmail(currentUser.getUsername());
 
         ArticleEntity article = ArticleEntity.builder()
                 .title(articleCreationRequest.getTitle())

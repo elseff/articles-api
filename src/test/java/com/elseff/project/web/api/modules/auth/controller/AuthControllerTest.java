@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.auth.controller;
 
 import com.elseff.project.exception.handling.dto.Violation;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.JwtProvider;
 import com.elseff.project.web.api.modules.auth.dto.AuthLoginRequest;
@@ -210,7 +210,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in if password is incorrect")
     void login_If_Password_Is_Incorrect() throws Exception {
-        User userEntity = getUserEntity();
+        UserEntity userEntity = getUserEntity();
         userEntity.setPassword(passwordEncoder.encode("test"));
         userRepository.save(userEntity);
 
@@ -231,7 +231,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Log in if AuthRequest is not valid")
     void login_If_AuthRequest_Is_Not_Valid() throws Exception {
-        User userEntity = userRepository.save(getUserEntity());
+        UserEntity userEntity = userRepository.save(getUserEntity());
 
         AuthLoginRequest authLoginRequest = getNotValidAuthRequest();
         String contentAuthRequest = objectMapper.writeValueAsString(authLoginRequest);
@@ -276,8 +276,8 @@ class AuthControllerTest {
                 .build();
     }
 
-    private User getUserEntity() {
-        return User.builder()
+    private UserEntity getUserEntity() {
+        return UserEntity.builder()
                 .firstName("test")
                 .lastName("test")
                 .email("test@test.com")

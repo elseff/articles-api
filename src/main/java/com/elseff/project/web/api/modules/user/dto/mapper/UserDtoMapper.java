@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.user.dto.mapper;
 
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.auth.dto.AuthRegisterRequest;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class UserDtoMapper {
 
-    public UserDto mapUserEntityToDtoForAdmin(User user) {
+    public UserDto mapUserEntityToDtoForAdmin(UserEntity user) {
         return UserDto.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
@@ -34,7 +34,7 @@ public class UserDtoMapper {
                 .build();
     }
 
-    public UserDto mapUserEntityToDtoForUser(User user) {
+    public UserDto mapUserEntityToDtoForUser(UserEntity user) {
         return UserDto.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
@@ -52,7 +52,7 @@ public class UserDtoMapper {
                 .build();
     }
 
-    public UserDto mapUserEntityToSimpleDto(User user) {
+    public UserDto mapUserEntityToSimpleDto(UserEntity user) {
         return UserDto.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
@@ -60,8 +60,8 @@ public class UserDtoMapper {
                 .build();
     }
 
-    public User mapAuthRequestToUserEntity(AuthRegisterRequest request) {
-        return User.builder()
+    public UserEntity mapAuthRequestToUserEntity(AuthRegisterRequest request) {
+        return UserEntity.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
@@ -71,19 +71,19 @@ public class UserDtoMapper {
 
     }
 
-    public List<UserDto> mapListUserEntityToSimpleDto(List<User> users) {
+    public List<UserDto> mapListUserEntityToSimpleDto(List<UserEntity> users) {
         return users.stream()
                 .map(this::mapUserEntityToSimpleDto)
                 .collect(Collectors.toList());
     }
 
-    public List<UserDto> mapListUserEntityToDtoForUser(List<User> users) {
+    public List<UserDto> mapListUserEntityToDtoForUser(List<UserEntity> users) {
         return users.stream()
                 .map(this::mapUserEntityToDtoForUser)
                 .collect(Collectors.toList());
     }
 
-    public List<UserDto> mapListUserEntityToDtoForAdmin(List<User> users) {
+    public List<UserDto> mapListUserEntityToDtoForAdmin(List<UserEntity> users) {
         return users.stream()
                 .map(this::mapUserEntityToDtoForAdmin)
                 .collect(Collectors.toList());

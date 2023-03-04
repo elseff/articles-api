@@ -2,7 +2,7 @@ package com.elseff.project.web.api.modules.article.service;
 
 import com.elseff.project.persistense.ArticleEntity;
 import com.elseff.project.persistense.RoleEntity;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
@@ -210,7 +210,7 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(getUserDetails());
         given(articleRepository.save(any(ArticleEntity.class))).willReturn(new ArticleEntity());
-        given(userRepository.getByEmail(anyString())).willReturn(new User());
+        given(userRepository.getByEmail(anyString())).willReturn(new UserEntity());
 
         ArticleCreationRequest article = ArticleCreationRequest.builder()
                 .title("Test Title")
@@ -234,7 +234,7 @@ class ArticleServiceTest {
     void updateArticle() {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
-        User user = getUserEntity();
+        UserEntity user = getUserEntity();
         ArticleEntity article = ArticleEntity.builder()
                 .author(user)
                 .title("test")
@@ -270,7 +270,7 @@ class ArticleServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl user = getUserDetails();
-        User author = User.builder()
+        UserEntity author = UserEntity.builder()
                 .email("author@author.com")
                 .build();
         ArticleEntity article = ArticleEntity.builder()
@@ -330,8 +330,8 @@ class ArticleServiceTest {
     }
 
     @NotNull
-    private User getUserEntity() {
-        return User.builder()
+    private UserEntity getUserEntity() {
+        return UserEntity.builder()
                 .id(1L)
                 .firstName("test")
                 .lastName("test")
@@ -343,8 +343,8 @@ class ArticleServiceTest {
     }
 
     @NotNull
-    private User getDifferentUserEntity() {
-        return User.builder()
+    private UserEntity getDifferentUserEntity() {
+        return UserEntity.builder()
                 .id(2L)
                 .firstName("testt")
                 .lastName("testt")

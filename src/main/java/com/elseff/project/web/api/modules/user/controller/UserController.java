@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.user.controller;
 
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.security.SecurityUtils;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
@@ -52,7 +52,7 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+        List<UserEntity> users = userService.getAllUsers();
 
         boolean currentUserIsAdmin = securityUtils.userIsAdmin(Objects.requireNonNull(AuthService.getCurrentUser()));
 
@@ -73,7 +73,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public UserDto getSpecific(@Parameter(description = "User id")
                                @PathVariable Long id) {
-        User user = userService.getUserById(id);
+        UserEntity user = userService.getUserById(id);
 
         boolean currentUserIsAdmin = securityUtils.userIsAdmin(Objects.requireNonNull(AuthService.getCurrentUser()));
 
@@ -118,7 +118,7 @@ public class UserController {
                               @Parameter(description = "User id")
                               @PathVariable
                                       Long id) {
-        User user = userService.updateUser(id, updateRequest);
+        UserEntity user = userService.updateUser(id, updateRequest);
 
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
         boolean currentUserIsAdmin = securityUtils.userIsAdmin(currentUser);
@@ -139,7 +139,7 @@ public class UserController {
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getMe() {
-        User me = userService.getMe();
+        UserEntity me = userService.getMe();
 
         return userDtoMapper.mapUserEntityToDtoForAdmin(me);
     }

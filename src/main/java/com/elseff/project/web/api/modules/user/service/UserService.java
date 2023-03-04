@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.user.service;
 
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
@@ -29,7 +29,7 @@ public class UserService {
 
     SecurityUtils securityUtils;
 
-    public User getUserById(Long id) {
+    public UserEntity getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("could not find user " + id);
@@ -37,12 +37,12 @@ public class UserService {
                 });
     }
 
-    public List<User> getAllUsers() {
+    public List<UserEntity> getAllUsers() {
         return userRepository.findAll();
     }
 
     public void deleteUser(Long id) {
-        User userFromDb = userRepository.findById(id)
+        UserEntity userFromDb = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("could not find user " + id);
                     return new UserNotFoundException("could not find user " + id);
@@ -63,8 +63,8 @@ public class UserService {
         }
     }
 
-    public User updateUser(Long id, UserUpdateRequest updateRequest) {
-        User user = userRepository.findById(id)
+    public UserEntity updateUser(Long id, UserUpdateRequest updateRequest) {
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("could not find user " + id);
                     return new UserNotFoundException("could not find user " + id);
@@ -91,7 +91,7 @@ public class UserService {
             throw new SomeoneElseUserProfileException();
     }
 
-    public User getMe() {
+    public UserEntity getMe() {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
         return userRepository.getByEmail(currentUser.getUsername());
     }

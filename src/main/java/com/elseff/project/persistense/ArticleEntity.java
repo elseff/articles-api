@@ -41,7 +41,7 @@ public class ArticleEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
-    User author;
+    UserEntity author;
 
     @PrePersist
     void init(){

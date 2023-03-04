@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.user.service;
 
 import com.elseff.project.persistense.RoleEntity;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
 import com.elseff.project.security.UserDetailsImpl;
@@ -51,12 +51,12 @@ class UserServiceTest {
     @DisplayName("Get all users")
     public void getAllUsers() {
         given(userRepository.findAll()).willReturn(Arrays.asList(
-                new User(),
-                new User(),
-                new User()
+                new UserEntity(),
+                new UserEntity(),
+                new UserEntity()
         ));
 
-        List<User> allUsers = service.getAllUsers();
+        List<UserEntity> allUsers = service.getAllUsers();
 
         int expectedListSize = 3;
         int actualListSize = allUsers.size();
@@ -70,9 +70,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Get user by id")
     void getUserById() {
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(new User()));
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(new UserEntity()));
 
-        User user = service.getUserById(1L);
+        UserEntity user = service.getUserById(1L);
 
         Assertions.assertNotNull(user);
 
@@ -86,7 +86,7 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
-        User userFromDb = new User();
+        UserEntity userFromDb = new UserEntity();
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
@@ -200,7 +200,7 @@ class UserServiceTest {
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
 
-        User userEntity = getUserEntity();
+        UserEntity userEntity = getUserEntity();
         UserUpdateRequest userUpdateRequest = UserUpdateRequest.builder()
                 .firstName("test1")
                 .build();
@@ -211,7 +211,7 @@ class UserServiceTest {
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(userEntity));
 
-        User updatedUser = service.updateUser(1L, userUpdateRequest);
+        UserEntity updatedUser = service.updateUser(1L, userUpdateRequest);
 
         String expectedFirstName = "test1";
         String actualFirstName = updatedUser.getFirstName();
@@ -279,7 +279,7 @@ class UserServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl userDetails = getUserDetails();
-        User user = getUserEntity();
+        UserEntity user = getUserEntity();
         UserDto userDto = UserDto.builder()
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
@@ -288,7 +288,7 @@ class UserServiceTest {
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.getByEmail(userDetails.getEmail())).willReturn(user);
 
-        User me = service.getMe();
+        UserEntity me = service.getMe();
 
         Assertions.assertNotNull(userDto);
 
@@ -311,8 +311,8 @@ class UserServiceTest {
     }
 
     @NotNull
-    private User getUserEntity() {
-        return User.builder()
+    private UserEntity getUserEntity() {
+        return UserEntity.builder()
                 .id(2L)
                 .firstName("test")
                 .lastName("test")
@@ -324,8 +324,8 @@ class UserServiceTest {
     }
 
     @NotNull
-    private User getDifferentUserEntity() {
-        return User.builder()
+    private UserEntity getDifferentUserEntity() {
+        return UserEntity.builder()
                 .id(2L)
                 .firstName("testt")
                 .lastName("testt")
