@@ -8,7 +8,6 @@ import com.elseff.project.security.UserDetailsImpl;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
 import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
-import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
 import com.elseff.project.web.api.modules.user.exception.SomeoneElseUserProfileException;
 import com.elseff.project.web.api.modules.user.exception.UserNotFoundException;
 import lombok.AccessLevel;
@@ -43,9 +42,6 @@ class UserServiceTest {
     @Mock
     SecurityUtils securityUtils;
 
-    @Mock
-    UserDtoMapper userDtoMapper;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -54,24 +50,13 @@ class UserServiceTest {
     @Test
     @DisplayName("Get all users")
     public void getAllUsers() {
-        @Cleanup
-        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
-        UserDetailsImpl userDetails = getUserDetails();
-
-        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
-        given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
-        given(userDtoMapper.mapListUserEntityToDtoForAdmin(any())).willReturn(Arrays.asList(
-                new UserDto(),
-                new UserDto(),
-                new UserDto()
-        ));
         given(userRepository.findAll()).willReturn(Arrays.asList(
                 new User(),
                 new User(),
                 new User()
         ));
 
-        List<UserDto> allUsers = service.getAllUsers();
+        List<User> allUsers = service.getAllUsers();
 
         int expectedListSize = 3;
         int actualListSize = allUsers.size();
@@ -79,39 +64,20 @@ class UserServiceTest {
         Assertions.assertEquals(expectedListSize, actualListSize);
 
         verify(userRepository, times(1)).findAll();
-        verify(userDtoMapper, times(1)).mapListUserEntityToDtoForAdmin(any());
-        verify(securityUtils, times(1)).userIsAdmin(any(UserDetails.class));
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(securityUtils);
-        verifyNoMoreInteractions(userDtoMapper);
-        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
-        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("Get user by id")
     void getUserById() {
-        @Cleanup
-        MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
-        UserDetailsImpl userDetails = getUserDetails();
-
-        serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
-        given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(new User()));
-        given(userDtoMapper.mapUserEntityToDtoForAdmin(any(User.class))).willReturn(new UserDto());
 
-        UserDto user = service.getUserById(1L);
+        User user = service.getUserById(1L);
 
         Assertions.assertNotNull(user);
 
         verify(userRepository, times(1)).findById(anyLong());
-        verify(userDtoMapper, times(1)).mapUserEntityToDtoForAdmin(any(User.class));
-        verify(securityUtils, times(1)).userIsAdmin(any(UserDetails.class));
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(securityUtils);
-        verifyNoMoreInteractions(userDtoMapper);
-        serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
-        serviceMockedStatic.verifyNoMoreInteractions();
     }
 
     @Test
@@ -244,10 +210,8 @@ class UserServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(userEntity));
-        given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
-        given(userDtoMapper.mapUserEntityToDtoForAdmin(any(User.class))).willReturn(userDto);
 
-        UserDto updatedUser = service.updateUser(1L, userUpdateRequest);
+        User updatedUser = service.updateUser(1L, userUpdateRequest);
 
         String expectedFirstName = "test1";
         String actualFirstName = updatedUser.getFirstName();
@@ -256,11 +220,7 @@ class UserServiceTest {
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).save(userEntity);
-        verify(securityUtils, times(1)).userIsAdmin(any(UserDetails.class));
-        verify(userDtoMapper, times(1)).mapUserEntityToDtoForAdmin(any(User.class));
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(securityUtils);
-        verifyNoMoreInteractions(userDtoMapper);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
@@ -327,9 +287,8 @@ class UserServiceTest {
                 .build();
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(userDetails);
         given(userRepository.getByEmail(userDetails.getEmail())).willReturn(user);
-        given(userDtoMapper.mapUserEntityToDtoForAdmin(any(User.class))).willReturn(userDto);
 
-        UserDto me = service.getMe();
+        User me = service.getMe();
 
         Assertions.assertNotNull(userDto);
 
@@ -337,9 +296,7 @@ class UserServiceTest {
         String actualUserEmail = me.getEmail();
 
         verify(userRepository, times(1)).getByEmail(anyString());
-        verify(userDtoMapper, times(1)).mapUserEntityToDtoForAdmin(any(User.class));
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(userDtoMapper);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
