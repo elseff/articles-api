@@ -1,8 +1,10 @@
 package com.elseff.project.web.api.modules.article.controller;
 
+import com.elseff.project.persistense.Article;
 import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
+import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +33,7 @@ import java.util.List;
 public class ArticleController {
 
     ArticleService articleService;
+    ArticleDtoMapper articleDtoMapper;
 
     @Operation(summary = "Get all articles",
             responses = {
@@ -44,9 +47,11 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.OK)
     public List<ArticleDto> findAll(@Parameter(description = "author id")
                                     @RequestParam(required = false, name = "authorId") Long authorId) {
-        return authorId == null
+        List<Article> articles = authorId == null
                 ? articleService.findAll()
                 : articleService.findAllByAuthorId(authorId);
+
+        return articleDtoMapper.mapListArticleEntityToDto(articles);
     }
 
     @Operation(summary = "Get specific article by id",
@@ -62,7 +67,9 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.OK)
     public ArticleDto findById(@Parameter(description = "Article id", required = true)
                                @PathVariable Long id) {
-        return articleService.findById(id);
+        Article article = articleService.findById(id);
+
+        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
     @Operation(summary = "Add new article",
@@ -80,7 +87,9 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.CREATED)
     public ArticleDto addArticle(@Parameter(description = "Article creation request", required = true)
                                  @RequestBody @Valid ArticleCreationRequest articleCreationRequest) {
-        return articleService.addArticle(articleCreationRequest);
+        Article article = articleService.addArticle(articleCreationRequest);
+
+        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
     @Operation(summary = "Delete article by id",
@@ -114,6 +123,8 @@ public class ArticleController {
                                             Long id,
                                     @Parameter(description = "Article update request", required = true)
                                     @RequestBody @Valid ArticleUpdateRequest updateRequest) {
-        return articleService.updateArticle(id, updateRequest);
+        Article article = articleService.updateArticle(id, updateRequest);
+
+        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 }

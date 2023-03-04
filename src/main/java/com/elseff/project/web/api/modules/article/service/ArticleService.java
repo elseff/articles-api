@@ -7,7 +7,6 @@ import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
 import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
-import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
 import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
@@ -38,24 +37,18 @@ public class ArticleService {
     ArticleDtoMapper articleDtoMapper;
     SecurityUtils securityUtils;
 
-    public List<ArticleDto> findAll() {
-        List<Article> articles = articleRepository.findAll();
-
-        return articleDtoMapper.mapListArticleEntityToDto(articles);
+    public List<Article> findAll() {
+        return articleRepository.findAll();
     }
 
-    public List<ArticleDto> findAllByAuthorId(Long authorId) {
-        List<Article> articles = articleRepository.findAllByAuthorId(authorId);
-
-        return articleDtoMapper.mapListArticleEntityToDto(articles);
+    public List<Article> findAllByAuthorId(Long authorId) {
+        return articleRepository.findAllByAuthorId(authorId);
     }
 
-    public ArticleDto findById(Long id) {
-        Article article = articleRepository.findById(id)
+    public Article findById(Long id) {
+        return articleRepository.findById(id)
                 .orElseThrow(() ->
                         new ArticleNotFoundException(id));
-
-        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
     public void deleteArticleById(Long id) {
@@ -76,7 +69,7 @@ public class ArticleService {
         }
     }
 
-    public ArticleDto addArticle(ArticleCreationRequest articleCreationRequest) {
+    public Article addArticle(ArticleCreationRequest articleCreationRequest) {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         User author = userRepository.getByEmail(currentUser.getUsername());
@@ -89,10 +82,10 @@ public class ArticleService {
                 .build();
         article = articleRepository.save(article);
 
-        return articleDtoMapper.mapArticleEntityToDto(article);
+        return article;
     }
 
-    public ArticleDto updateArticle(Long id, ArticleUpdateRequest updateRequest) {
+    public Article updateArticle(Long id, ArticleUpdateRequest updateRequest) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
@@ -110,7 +103,7 @@ public class ArticleService {
             article = articleRepository.save(article);
             log.info("updated article {} by user {}", article.getId(), currentUser.getUsername());
 
-            return articleDtoMapper.mapArticleEntityToDto(article);
+            return article;
         } else throw new SomeoneElseArticleException();
     }
 
