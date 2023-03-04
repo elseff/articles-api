@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.article.service;
 
 import com.elseff.project.persistense.ArticleEntity;
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -355,11 +355,11 @@ class ArticleServiceTest {
                 .build();
     }
 
-    private Role getRoleAdmin() {
-        return new Role("ROLE_ADMIN");
+    private RoleEntity getRoleAdmin() {
+        return new RoleEntity("ROLE_ADMIN");
     }
 
-    private Role getRoleUser() {
-        return new Role("ROLE_USER");
+    private RoleEntity getRoleUser() {
+        return new RoleEntity("ROLE_USER");
     }
 }

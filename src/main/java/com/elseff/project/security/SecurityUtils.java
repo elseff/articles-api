@@ -1,6 +1,6 @@
 package com.elseff.project.security;
 
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.dao.RoleRepository;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -17,7 +17,7 @@ public final class SecurityUtils {
     RoleRepository roleRepository;
 
     public boolean userIsAdmin(@NonNull UserDetails user) {
-        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+        RoleEntity roleAdmin = roleRepository.getByName("ROLE_ADMIN");
         return user.getAuthorities().contains(roleAdmin);
     }
 }

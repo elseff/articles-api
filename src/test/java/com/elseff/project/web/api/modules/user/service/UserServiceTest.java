@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.user.service;
 
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
@@ -336,11 +336,11 @@ class UserServiceTest {
                 .build();
     }
 
-    private Role getRoleAdmin() {
-        return new Role(2L, "ROLE_ADMIN");
+    private RoleEntity getRoleAdmin() {
+        return new RoleEntity(2L, "ROLE_ADMIN");
     }
 
-    private Role getRoleUser() {
-        return new Role(1L, "ROLE_USER");
+    private RoleEntity getRoleUser() {
+        return new RoleEntity(1L, "ROLE_USER");
     }
 }

@@ -56,7 +56,7 @@ public class User {
                     name = "role_id",
                     referencedColumnName = "id"
             ))
-    Set<Role> roles;
+    Set<RoleEntity> roles;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "author")
     List<ArticleEntity> articles;

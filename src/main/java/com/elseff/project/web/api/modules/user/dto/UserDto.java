@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.user.dto;
 
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
@@ -36,7 +36,7 @@ public class UserDto {
 
     Timestamp updatedAt;
 
-    Set<Role> roles;
+    Set<RoleEntity> roles;
 
     List<ArticleDto> articles;
 }

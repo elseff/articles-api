@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.auth.service;
 
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -47,8 +47,8 @@ public class AuthService {
             log.warn("User with email " + authRegisterRequest.getEmail() + " already exists");
             throw new AuthenticationException("User with email " + authRegisterRequest.getEmail() + " already exists");
         }
-        Role roleUser = roleRepository.getByName("ROLE_USER");
-        Set<Role> roles = new HashSet<>();
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
+        Set<RoleEntity> roles = new HashSet<>();
         roles.add(roleUser);
 
         User user = userDtoMapper.mapAuthRequestToUserEntity(authRegisterRequest);

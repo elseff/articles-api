@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.user.controller;
 
 import com.elseff.project.exception.handling.dto.Violation;
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -85,8 +85,8 @@ class UserControllerTest {
         roleRepository.deleteAll();
 
         //saving roles user and admin
-        roleRepository.save(new Role("ROLE_USER"));
-        roleRepository.save(new Role("ROLE_ADMIN"));
+        roleRepository.save(new RoleEntity("ROLE_USER"));
+        roleRepository.save(new RoleEntity("ROLE_ADMIN"));
         //send changes to db
         roleRepository.flush();
 
@@ -388,7 +388,7 @@ class UserControllerTest {
     }
 
     private User getUser() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
         return User.builder()
                 .id(1L)
                 .firstName("user")
@@ -401,8 +401,8 @@ class UserControllerTest {
     }
 
     private User getAdmin() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
-        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
+        RoleEntity roleAdmin = roleRepository.getByName("ROLE_ADMIN");
         return User.builder()
                 .id(2L)
                 .firstName("admin")

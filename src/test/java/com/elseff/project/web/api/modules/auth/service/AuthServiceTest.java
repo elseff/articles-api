@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.auth.service;
 
-import com.elseff.project.persistense.Role;
+import com.elseff.project.persistense.RoleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -191,8 +191,8 @@ class AuthServiceTest {
                 .build();
     }
 
-    private Role getRoleUser() {
-        return new Role("ROLE_USER");
+    private RoleEntity getRoleUser() {
+        return new RoleEntity("ROLE_USER");
     }
 
     private AuthRegisterRequest getAuthRegisterRequest() {
