@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.article.service;
 
-import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.ArticleEntity;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
@@ -37,22 +37,22 @@ public class ArticleService {
     ArticleDtoMapper articleDtoMapper;
     SecurityUtils securityUtils;
 
-    public List<Article> findAll() {
+    public List<ArticleEntity> findAll() {
         return articleRepository.findAll();
     }
 
-    public List<Article> findAllByAuthorId(Long authorId) {
+    public List<ArticleEntity> findAllByAuthorId(Long authorId) {
         return articleRepository.findAllByAuthorId(authorId);
     }
 
-    public Article findById(Long id) {
+    public ArticleEntity findById(Long id) {
         return articleRepository.findById(id)
                 .orElseThrow(() ->
                         new ArticleNotFoundException(id));
     }
 
     public void deleteArticleById(Long id) {
-        Article article = articleRepository.findById(id)
+        ArticleEntity article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
@@ -69,12 +69,12 @@ public class ArticleService {
         }
     }
 
-    public Article addArticle(ArticleCreationRequest articleCreationRequest) {
+    public ArticleEntity addArticle(ArticleCreationRequest articleCreationRequest) {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
         User author = userRepository.getByEmail(currentUser.getUsername());
 
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .title(articleCreationRequest.getTitle())
                 .description(articleCreationRequest.getDescription())
                 .author(author)
@@ -85,8 +85,8 @@ public class ArticleService {
         return article;
     }
 
-    public Article updateArticle(Long id, ArticleUpdateRequest updateRequest) {
-        Article article = articleRepository.findById(id)
+    public ArticleEntity updateArticle(Long id, ArticleUpdateRequest updateRequest) {
+        ArticleEntity article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());

@@ -59,7 +59,7 @@ public class User {
     Set<Role> roles;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "author")
-    List<Article> articles;
+    List<ArticleEntity> articles;
 
     @PrePersist
     void init() {

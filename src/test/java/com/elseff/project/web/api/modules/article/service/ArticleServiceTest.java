@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.article.service;
 
-import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.ArticleEntity;
 import com.elseff.project.persistense.Role;
 import com.elseff.project.persistense.User;
 import com.elseff.project.persistense.dao.ArticleRepository;
@@ -59,12 +59,12 @@ class ArticleServiceTest {
     @DisplayName("Find all articles")
     void findAllArticles() {
         given(articleRepository.findAll()).willReturn(Arrays.asList(
-                new Article(),
-                new Article(),
-                new Article()
+                new ArticleEntity(),
+                new ArticleEntity(),
+                new ArticleEntity()
         ));
 
-        List<Article> allArticles = articleService.findAll();
+        List<ArticleEntity> allArticles = articleService.findAll();
 
         int expectedListSize = 3;
         int actualListSize = allArticles.size();
@@ -78,12 +78,12 @@ class ArticleServiceTest {
     @Test
     void findAllByAuthorId() {
         given(articleRepository.findAllByAuthorId(anyLong())).willReturn(List.of(
-                new Article(),
-                new Article(),
-                new Article()
+                new ArticleEntity(),
+                new ArticleEntity(),
+                new ArticleEntity()
         ));
 
-        List<Article> articledByAuthorId = articleService.findAllByAuthorId(1L);
+        List<ArticleEntity> articledByAuthorId = articleService.findAllByAuthorId(1L);
 
         int expectedListSize = 3;
         int actualListSize = articledByAuthorId.size();
@@ -97,11 +97,11 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Find article")
     void findById() {
-        Article articleFromDb = new Article();
+        ArticleEntity articleFromDb = new ArticleEntity();
 
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
 
-        Article article = articleService.findById(1L);
+        ArticleEntity article = articleService.findById(1L);
         Assertions.assertNotNull(article);
 
         verify(articleRepository, times(1)).findById(anyLong());
@@ -133,7 +133,7 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .id(1L)
                 .title("test")
                 .description("test")
@@ -162,7 +162,7 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(false);
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .id(1L)
                 .title("test")
                 .description("test")
@@ -209,7 +209,7 @@ class ArticleServiceTest {
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(getUserDetails());
-        given(articleRepository.save(any(Article.class))).willReturn(new Article());
+        given(articleRepository.save(any(ArticleEntity.class))).willReturn(new ArticleEntity());
         given(userRepository.getByEmail(anyString())).willReturn(new User());
 
         ArticleCreationRequest article = ArticleCreationRequest.builder()
@@ -217,11 +217,11 @@ class ArticleServiceTest {
                 .description("Test Description")
                 .build();
 
-        Article addedArticle = articleService.addArticle(article);
+        ArticleEntity addedArticle = articleService.addArticle(article);
 
         Assertions.assertNotNull(addedArticle);
 
-        verify(articleRepository, times(1)).save(any(Article.class));
+        verify(articleRepository, times(1)).save(any(ArticleEntity.class));
         verify(userRepository, times(1)).getByEmail(anyString());
         verifyNoMoreInteractions(articleRepository);
         verifyNoMoreInteractions(userRepository);
@@ -235,7 +235,7 @@ class ArticleServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         User user = getUserEntity();
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .author(user)
                 .title("test")
                 .edited(false)
@@ -251,14 +251,14 @@ class ArticleServiceTest {
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(article));
         given(articleRepository.save(article)).willReturn(article);
 
-        Article updatedArticle = articleService.updateArticle(1L, articleUpdateRequest);
+        ArticleEntity updatedArticle = articleService.updateArticle(1L, articleUpdateRequest);
 
         String expectedTitle = "test1";
         String actualTitle = updatedArticle.getTitle();
         Assertions.assertEquals(expectedTitle, actualTitle);
 
         verify(articleRepository, times(1)).findById(anyLong());
-        verify(articleRepository, times(1)).save(any(Article.class));
+        verify(articleRepository, times(1)).save(any(ArticleEntity.class));
         verifyNoMoreInteractions(articleRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
@@ -273,7 +273,7 @@ class ArticleServiceTest {
         User author = User.builder()
                 .email("author@author.com")
                 .build();
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .author(author)
                 .title("test")
                 .build();

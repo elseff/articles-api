@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.article.controller;
 
-import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.ArticleEntity;
 import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
@@ -47,7 +47,7 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.OK)
     public List<ArticleDto> findAll(@Parameter(description = "author id")
                                     @RequestParam(required = false, name = "authorId") Long authorId) {
-        List<Article> articles = authorId == null
+        List<ArticleEntity> articles = authorId == null
                 ? articleService.findAll()
                 : articleService.findAllByAuthorId(authorId);
 
@@ -67,7 +67,7 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.OK)
     public ArticleDto findById(@Parameter(description = "Article id", required = true)
                                @PathVariable Long id) {
-        Article article = articleService.findById(id);
+        ArticleEntity article = articleService.findById(id);
 
         return articleDtoMapper.mapArticleEntityToDto(article);
     }
@@ -87,7 +87,7 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.CREATED)
     public ArticleDto addArticle(@Parameter(description = "Article creation request", required = true)
                                  @RequestBody @Valid ArticleCreationRequest articleCreationRequest) {
-        Article article = articleService.addArticle(articleCreationRequest);
+        ArticleEntity article = articleService.addArticle(articleCreationRequest);
 
         return articleDtoMapper.mapArticleEntityToDto(article);
     }
@@ -123,7 +123,7 @@ public class ArticleController {
                                             Long id,
                                     @Parameter(description = "Article update request", required = true)
                                     @RequestBody @Valid ArticleUpdateRequest updateRequest) {
-        Article article = articleService.updateArticle(id, updateRequest);
+        ArticleEntity article = articleService.updateArticle(id, updateRequest);
 
         return articleDtoMapper.mapArticleEntityToDto(article);
     }
