@@ -1,6 +1,6 @@
 package com.elseff.project.web.api.modules.article.dto.mapper;
 
-import com.elseff.project.persistense.Article;
+import com.elseff.project.persistense.ArticleEntity;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 @Component
 public class ArticleDtoMapper {
 
-    public ArticleDto mapArticleEntityToDto(Article article) {
+    public ArticleDto mapArticleEntityToDto(ArticleEntity article) {
         return ArticleDto.builder()
                 .id(article.getId())
                 .title(article.getTitle())
@@ -27,7 +27,7 @@ public class ArticleDtoMapper {
                 .build();
     }
 
-    public ArticleDto mapArticleEntityToSimpleDto(Article article) {
+    public ArticleDto mapArticleEntityToSimpleDto(ArticleEntity article) {
         return ArticleDto.builder()
                 .id(article.getId())
                 .title(article.getTitle())
@@ -35,13 +35,13 @@ public class ArticleDtoMapper {
                 .build();
     }
 
-    public List<ArticleDto> mapListArticleEntityToDto(List<Article> articles) {
+    public List<ArticleDto> mapListArticleEntityToDto(List<ArticleEntity> articles) {
         return articles.stream()
                 .map(this::mapArticleEntityToDto)
                 .collect(Collectors.toList());
     }
 
-    public List<ArticleDto> mapListArticleEntityToSimpleDto(List<Article> articles) {
+    public List<ArticleDto> mapListArticleEntityToSimpleDto(List<ArticleEntity> articles) {
         return articles.stream()
                 .map(this::mapArticleEntityToSimpleDto)
                 .collect(Collectors.toList());

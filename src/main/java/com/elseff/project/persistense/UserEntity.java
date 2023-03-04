@@ -18,7 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Table(name = "_user", schema = "public")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class UserEntity {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -56,10 +56,10 @@ public class User {
                     name = "role_id",
                     referencedColumnName = "id"
             ))
-    Set<Role> roles;
+    Set<RoleEntity> roles;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "author")
-    List<Article> articles;
+    List<ArticleEntity> articles;
 
     @PrePersist
     void init() {
@@ -70,7 +70,7 @@ public class User {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
+        UserEntity user = (UserEntity) o;
         return Objects.equals(id, user.id) && Objects.equals(email, user.email);
     }
 

@@ -1,8 +1,8 @@
 package com.elseff.project.web.api.modules.article.service;
 
-import com.elseff.project.persistense.Article;
-import com.elseff.project.persistense.Role;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.ArticleEntity;
+import com.elseff.project.persistense.RoleEntity;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
@@ -10,7 +10,6 @@ import com.elseff.project.security.UserDetailsImpl;
 import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
 import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
-import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
 import com.elseff.project.web.api.modules.article.exception.SomeoneElseArticleException;
 import com.elseff.project.web.api.modules.auth.service.AuthService;
@@ -49,9 +48,6 @@ class ArticleServiceTest {
     UserRepository userRepository;
 
     @Mock
-    ArticleDtoMapper articleDtoMapper;
-
-    @Mock
     SecurityUtils securityUtils;
 
     @BeforeEach
@@ -62,18 +58,13 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Find all articles")
     void findAllArticles() {
-        given(articleDtoMapper.mapListArticleEntityToDto(any())).willReturn(List.of(
-                new ArticleDto(),
-                new ArticleDto(),
-                new ArticleDto()
-        ));
         given(articleRepository.findAll()).willReturn(Arrays.asList(
-                new Article(),
-                new Article(),
-                new Article()
+                new ArticleEntity(),
+                new ArticleEntity(),
+                new ArticleEntity()
         ));
 
-        List<ArticleDto> allArticles = articleService.findAll();
+        List<ArticleEntity> allArticles = articleService.findAll();
 
         int expectedListSize = 3;
         int actualListSize = allArticles.size();
@@ -81,25 +72,18 @@ class ArticleServiceTest {
         Assertions.assertEquals(expectedListSize, actualListSize);
 
         verify(articleRepository, times(1)).findAll();
-        verify(articleDtoMapper, times(1)).mapListArticleEntityToDto(any());
         verifyNoMoreInteractions(articleRepository);
-        verifyNoMoreInteractions(articleDtoMapper);
     }
 
     @Test
     void findAllByAuthorId() {
         given(articleRepository.findAllByAuthorId(anyLong())).willReturn(List.of(
-                new Article(),
-                new Article(),
-                new Article()
-        ));
-        given(articleDtoMapper.mapListArticleEntityToDto(any())).willReturn(List.of(
-                new ArticleDto(),
-                new ArticleDto(),
-                new ArticleDto()
+                new ArticleEntity(),
+                new ArticleEntity(),
+                new ArticleEntity()
         ));
 
-        List<ArticleDto> articledByAuthorId = articleService.findAllByAuthorId(1L);
+        List<ArticleEntity> articledByAuthorId = articleService.findAllByAuthorId(1L);
 
         int expectedListSize = 3;
         int actualListSize = articledByAuthorId.size();
@@ -107,26 +91,21 @@ class ArticleServiceTest {
         Assertions.assertEquals(expectedListSize, actualListSize);
 
         verify(articleRepository, times(1)).findAllByAuthorId(anyLong());
-        verify(articleDtoMapper, times(1)).mapListArticleEntityToDto(any());
         verifyNoMoreInteractions(articleRepository);
-        verifyNoMoreInteractions(articleDtoMapper);
     }
 
     @Test
     @DisplayName("Find article")
     void findById() {
-        Article articleFromDb = new Article();
+        ArticleEntity articleFromDb = new ArticleEntity();
 
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(articleFromDb));
-        given(articleDtoMapper.mapArticleEntityToDto(any(Article.class))).willReturn(new ArticleDto());
 
-        ArticleDto article = articleService.findById(1L);
+        ArticleEntity article = articleService.findById(1L);
         Assertions.assertNotNull(article);
 
         verify(articleRepository, times(1)).findById(anyLong());
-        verify(articleDtoMapper, times(1)).mapArticleEntityToDto(any(Article.class));
         verifyNoMoreInteractions(articleRepository);
-        verifyNoMoreInteractions(articleDtoMapper);
     }
 
     @Test
@@ -154,7 +133,7 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(true);
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .id(1L)
                 .title("test")
                 .description("test")
@@ -183,7 +162,7 @@ class ArticleServiceTest {
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(user);
         given(securityUtils.userIsAdmin(any(UserDetails.class))).willReturn(false);
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .id(1L)
                 .title("test")
                 .description("test")
@@ -230,24 +209,21 @@ class ArticleServiceTest {
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
 
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(getUserDetails());
-        given(articleRepository.save(any(Article.class))).willReturn(new Article());
-        given(articleDtoMapper.mapArticleEntityToDto(any(Article.class))).willReturn(new ArticleDto());
-        given(userRepository.getByEmail(anyString())).willReturn(new User());
+        given(articleRepository.save(any(ArticleEntity.class))).willReturn(new ArticleEntity());
+        given(userRepository.getByEmail(anyString())).willReturn(new UserEntity());
 
         ArticleCreationRequest article = ArticleCreationRequest.builder()
                 .title("Test Title")
                 .description("Test Description")
                 .build();
 
-        ArticleDto addedArticle = articleService.addArticle(article);
+        ArticleEntity addedArticle = articleService.addArticle(article);
 
         Assertions.assertNotNull(addedArticle);
 
-        verify(articleRepository, times(1)).save(any(Article.class));
-        verify(articleDtoMapper, times(1)).mapArticleEntityToDto(any(Article.class));
+        verify(articleRepository, times(1)).save(any(ArticleEntity.class));
         verify(userRepository, times(1)).getByEmail(anyString());
         verifyNoMoreInteractions(articleRepository);
-        verifyNoMoreInteractions(articleDtoMapper);
         verifyNoMoreInteractions(userRepository);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
@@ -258,8 +234,8 @@ class ArticleServiceTest {
     void updateArticle() {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
-        User user = getUserEntity();
-        Article article = Article.builder()
+        UserEntity user = getUserEntity();
+        ArticleEntity article = ArticleEntity.builder()
                 .author(user)
                 .title("test")
                 .edited(false)
@@ -274,19 +250,16 @@ class ArticleServiceTest {
         serviceMockedStatic.when(AuthService::getCurrentUser).thenReturn(getUserDetails());
         given(articleRepository.findById(anyLong())).willReturn(Optional.of(article));
         given(articleRepository.save(article)).willReturn(article);
-        given(articleDtoMapper.mapArticleEntityToDto(any(Article.class))).willReturn(articleDto);
 
-        ArticleDto updatedArticle = articleService.updateArticle(1L, articleUpdateRequest);
+        ArticleEntity updatedArticle = articleService.updateArticle(1L, articleUpdateRequest);
 
         String expectedTitle = "test1";
         String actualTitle = updatedArticle.getTitle();
         Assertions.assertEquals(expectedTitle, actualTitle);
 
         verify(articleRepository, times(1)).findById(anyLong());
-        verify(articleRepository, times(1)).save(any(Article.class));
-        verify(articleDtoMapper, times(1)).mapArticleEntityToDto(any(Article.class));
+        verify(articleRepository, times(1)).save(any(ArticleEntity.class));
         verifyNoMoreInteractions(articleRepository);
-        verifyNoMoreInteractions(articleDtoMapper);
         serviceMockedStatic.verify(AuthService::getCurrentUser, times(1));
         serviceMockedStatic.verifyNoMoreInteractions();
     }
@@ -297,10 +270,10 @@ class ArticleServiceTest {
         @Cleanup
         MockedStatic<AuthService> serviceMockedStatic = Mockito.mockStatic(AuthService.class);
         UserDetailsImpl user = getUserDetails();
-        User author = User.builder()
+        UserEntity author = UserEntity.builder()
                 .email("author@author.com")
                 .build();
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .author(author)
                 .title("test")
                 .build();
@@ -357,8 +330,8 @@ class ArticleServiceTest {
     }
 
     @NotNull
-    private User getUserEntity() {
-        return User.builder()
+    private UserEntity getUserEntity() {
+        return UserEntity.builder()
                 .id(1L)
                 .firstName("test")
                 .lastName("test")
@@ -370,8 +343,8 @@ class ArticleServiceTest {
     }
 
     @NotNull
-    private User getDifferentUserEntity() {
-        return User.builder()
+    private UserEntity getDifferentUserEntity() {
+        return UserEntity.builder()
                 .id(2L)
                 .firstName("testt")
                 .lastName("testt")
@@ -382,11 +355,11 @@ class ArticleServiceTest {
                 .build();
     }
 
-    private Role getRoleAdmin() {
-        return new Role("ROLE_ADMIN");
+    private RoleEntity getRoleAdmin() {
+        return new RoleEntity("ROLE_ADMIN");
     }
 
-    private Role getRoleUser() {
-        return new Role("ROLE_USER");
+    private RoleEntity getRoleUser() {
+        return new RoleEntity("ROLE_USER");
     }
 }

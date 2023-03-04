@@ -1,7 +1,7 @@
 package com.elseff.project.web.api.modules.auth.service;
 
-import com.elseff.project.persistense.Role;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.RoleEntity;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.JwtProvider;
@@ -71,7 +71,7 @@ class AuthServiceTest {
     @Test
     void register() {
         String email = getAuthRegisterRequest().getEmail();
-        User user = User.builder()
+        UserEntity user = UserEntity.builder()
                 .email(email)
                 .password("test")
                 .build();
@@ -126,7 +126,7 @@ class AuthServiceTest {
     @Test
     void login_If_Password_Is_Incorrect() {
         AuthLoginRequest authLoginRequest = getAuthLoginRequest();
-        User userFromDb = getUserFromDb();
+        UserEntity userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
         given(userRepository.existsByEmail(email)).willReturn(true);
@@ -150,7 +150,7 @@ class AuthServiceTest {
     @Test
     void login() {
         AuthLoginRequest authLoginRequest = getAuthLoginRequest();
-        User userFromDb = getUserFromDb();
+        UserEntity userFromDb = getUserFromDb();
         String email = userFromDb.getEmail();
 
         given(userRepository.existsByEmail(email)).willReturn(true);
@@ -174,8 +174,8 @@ class AuthServiceTest {
         verifyNoMoreInteractions(passwordEncoder);
     }
 
-    private User getUserFromDb() {
-        return User.builder()
+    private UserEntity getUserFromDb() {
+        return UserEntity.builder()
                 .firstName("test")
                 .lastName("test")
                 .email("test@test.com")
@@ -191,8 +191,8 @@ class AuthServiceTest {
                 .build();
     }
 
-    private Role getRoleUser() {
-        return new Role("ROLE_USER");
+    private RoleEntity getRoleUser() {
+        return new RoleEntity("ROLE_USER");
     }
 
     private AuthRegisterRequest getAuthRegisterRequest() {

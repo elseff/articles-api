@@ -1,8 +1,8 @@
 package com.elseff.project.web.api.modules.user.controller;
 
 import com.elseff.project.exception.handling.dto.Violation;
-import com.elseff.project.persistense.Role;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.RoleEntity;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
@@ -85,8 +85,8 @@ class UserControllerTest {
         roleRepository.deleteAll();
 
         //saving roles user and admin
-        roleRepository.save(new Role("ROLE_USER"));
-        roleRepository.save(new Role("ROLE_ADMIN"));
+        roleRepository.save(new RoleEntity("ROLE_USER"));
+        roleRepository.save(new RoleEntity("ROLE_ADMIN"));
         //send changes to db
         roleRepository.flush();
 
@@ -116,7 +116,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-        List<User> users = objectMapper.readValue(response, new TypeReference<>() {
+        List<UserEntity> users = objectMapper.readValue(response, new TypeReference<>() {
         });
 
         int expectedListSize = 2;
@@ -129,8 +129,8 @@ class UserControllerTest {
     @DisplayName("Get specific user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void getSpecific() throws Exception {
-        User user = getUser();
-        User userFromDb = userRepository.getByEmail(user.getEmail());
+        UserEntity user = getUser();
+        UserEntity userFromDb = userRepository.getByEmail(user.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = get(endPoint)
@@ -167,8 +167,8 @@ class UserControllerTest {
     @DisplayName("Delete user by admin")
     @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_If_Current_User_Is_Admin() throws Exception {
-        User admin = getAdmin();
-        User userFromDb = userRepository.getByEmail(admin.getEmail());
+        UserEntity admin = getAdmin();
+        UserEntity userFromDb = userRepository.getByEmail(admin.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -194,8 +194,8 @@ class UserControllerTest {
     @DisplayName("Delete user by user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_By_User() throws Exception {
-        User user = getUser();
-        User userFromDb = userRepository.getByEmail(user.getEmail());
+        UserEntity user = getUser();
+        UserEntity userFromDb = userRepository.getByEmail(user.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -221,8 +221,8 @@ class UserControllerTest {
     @DisplayName("Delete user if someone else's profile")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteUser_If_Someone_Else_Profile() throws Exception {
-        User admin = getAdmin();
-        User userFromDb = userRepository.getByEmail(admin.getEmail());
+        UserEntity admin = getAdmin();
+        UserEntity userFromDb = userRepository.getByEmail(admin.getEmail());
         String endPoint = this.endPoint + "/" + userFromDb.getId();
 
         MockHttpServletRequestBuilder request = delete(endPoint)
@@ -257,8 +257,8 @@ class UserControllerTest {
     @DisplayName("Update user")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser() throws Exception {
-        User user = getUser();
-        User userFromDb = userRepository.getByEmail(user.getEmail());
+        UserEntity user = getUser();
+        UserEntity userFromDb = userRepository.getByEmail(user.getEmail());
         UserUpdateRequest updateRequest = getUserUpdateRequest();
         String requestBody = objectMapper.writeValueAsString(updateRequest);
 
@@ -302,8 +302,8 @@ class UserControllerTest {
     @DisplayName("Update user if user is not valid")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_User_Is_Not_Valid() throws Exception {
-        User user = getUser();
-        User userFromDb = userRepository.getByEmail(user.getEmail());
+        UserEntity user = getUser();
+        UserEntity userFromDb = userRepository.getByEmail(user.getEmail());
         UserUpdateRequest updateRequest = getNotValidUserUpdateRequest();
         String requestBody = objectMapper.writeValueAsString(updateRequest);
 
@@ -341,8 +341,8 @@ class UserControllerTest {
     @DisplayName("Update user if it's someone else's profile")
     @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateUser_If_Someone_Else_Profile() throws Exception {
-        User user = getUser();
-        User userFromDb = userRepository.getByEmail(user.getEmail());
+        UserEntity user = getUser();
+        UserEntity userFromDb = userRepository.getByEmail(user.getEmail());
         UserUpdateRequest updateRequest = getUserUpdateRequest();
         String requestBody = objectMapper.writeValueAsString(updateRequest);
 
@@ -387,9 +387,9 @@ class UserControllerTest {
         Assertions.assertEquals(expectedMeEmail, actualMeEmail);
     }
 
-    private User getUser() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
-        return User.builder()
+    private UserEntity getUser() {
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
+        return UserEntity.builder()
                 .id(1L)
                 .firstName("user")
                 .lastName("user")
@@ -400,10 +400,10 @@ class UserControllerTest {
                 .build();
     }
 
-    private User getAdmin() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
-        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
-        return User.builder()
+    private UserEntity getAdmin() {
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
+        RoleEntity roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+        return UserEntity.builder()
                 .id(2L)
                 .firstName("admin")
                 .lastName("admin")

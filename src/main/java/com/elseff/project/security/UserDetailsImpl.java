@@ -1,6 +1,6 @@
 package com.elseff.project.security;
 
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.UserEntity;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +20,7 @@ public class UserDetailsImpl implements UserDetails {
     String password;
     Collection<? extends GrantedAuthority> grantedAuthorities;
 
-    public static UserDetailsImpl toUserDetails(User user) {
+    public static UserDetailsImpl toUserDetails(UserEntity user) {
         UserDetailsImpl userDetails = new UserDetailsImpl();
         userDetails.setEmail(user.getEmail());
         userDetails.setPassword(user.getPassword());

@@ -17,7 +17,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Table(name = "article", schema = "public")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Article {
+public class ArticleEntity {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -41,7 +41,7 @@ public class Article {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
-    User author;
+    UserEntity author;
 
     @PrePersist
     void init(){
@@ -54,7 +54,7 @@ public class Article {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Article article = (Article) o;
+        ArticleEntity article = (ArticleEntity) o;
         return id.equals(article.id);
     }
 

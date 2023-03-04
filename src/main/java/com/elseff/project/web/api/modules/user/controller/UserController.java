@@ -1,7 +1,11 @@
 package com.elseff.project.web.api.modules.user.controller;
 
+import com.elseff.project.persistense.UserEntity;
+import com.elseff.project.security.SecurityUtils;
+import com.elseff.project.web.api.modules.auth.service.AuthService;
 import com.elseff.project.web.api.modules.user.dto.UserDto;
 import com.elseff.project.web.api.modules.user.dto.UserUpdateRequest;
+import com.elseff.project.web.api.modules.user.dto.mapper.UserDtoMapper;
 import com.elseff.project.web.api.modules.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,13 +17,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Validated
@@ -32,6 +37,10 @@ public class UserController {
 
     UserService userService;
 
+    UserDtoMapper userDtoMapper;
+
+    SecurityUtils securityUtils;
+
     @Operation(summary = "Get all users",
             responses = {
                     @ApiResponse(
@@ -43,7 +52,12 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> getAllUsers() {
-        return userService.getAllUsers();
+        List<UserEntity> users = userService.getAllUsers();
+
+        boolean currentUserIsAdmin = securityUtils.userIsAdmin(Objects.requireNonNull(AuthService.getCurrentUser()));
+
+        return currentUserIsAdmin ? userDtoMapper.mapListUserEntityToDtoForAdmin(users)
+                : userDtoMapper.mapListUserEntityToDtoForUser(users);
     }
 
     @Operation(summary = "Get specific user",
@@ -59,7 +73,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public UserDto getSpecific(@Parameter(description = "User id")
                                @PathVariable Long id) {
-        return userService.getUserById(id);
+        UserEntity user = userService.getUserById(id);
+
+        boolean currentUserIsAdmin = securityUtils.userIsAdmin(Objects.requireNonNull(AuthService.getCurrentUser()));
+
+        return currentUserIsAdmin ? userDtoMapper.mapUserEntityToDtoForAdmin(user)
+                : userDtoMapper.mapUserEntityToDtoForUser(user);
     }
 
     @Operation(summary = "Delete user",
@@ -99,7 +118,13 @@ public class UserController {
                               @Parameter(description = "User id")
                               @PathVariable
                                       Long id) {
-        return userService.updateUser(id, updateRequest);
+        UserEntity user = userService.updateUser(id, updateRequest);
+
+        UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
+        boolean currentUserIsAdmin = securityUtils.userIsAdmin(currentUser);
+
+        return currentUserIsAdmin ? userDtoMapper.mapUserEntityToDtoForAdmin(user)
+                : userDtoMapper.mapUserEntityToDtoForUser(user);
     }
 
     @Operation(summary = "User Profile",
@@ -114,6 +139,8 @@ public class UserController {
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getMe() {
-        return userService.getMe();
+        UserEntity me = userService.getMe();
+
+        return userDtoMapper.mapUserEntityToDtoForAdmin(me);
     }
 }

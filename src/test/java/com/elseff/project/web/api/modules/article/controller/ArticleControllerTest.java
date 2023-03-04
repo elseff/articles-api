@@ -1,9 +1,9 @@
 package com.elseff.project.web.api.modules.article.controller;
 
 import com.elseff.project.exception.handling.dto.Violation;
-import com.elseff.project.persistense.Article;
-import com.elseff.project.persistense.Role;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.ArticleEntity;
+import com.elseff.project.persistense.RoleEntity;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
@@ -81,8 +81,8 @@ public class ArticleControllerTest {
         roleRepository.deleteAll();
 
         //saving roles user and admin
-        roleRepository.save(new Role("ROLE_USER"));
-        roleRepository.save(new Role("ROLE_ADMIN"));
+        roleRepository.save(new RoleEntity("ROLE_USER"));
+        roleRepository.save(new RoleEntity("ROLE_ADMIN"));
         //send changes to db
         roleRepository.flush();
 
@@ -108,7 +108,7 @@ public class ArticleControllerTest {
     @DisplayName("Find all Articles")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void findAll() throws Exception {
-        User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
+        UserEntity currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
         articleRepository.save(getArticle(currentAuthenticatedUser));
         articleRepository.save(getArticle(currentAuthenticatedUser));
         articleRepository.save(getArticle(currentAuthenticatedUser));
@@ -135,8 +135,8 @@ public class ArticleControllerTest {
     @DisplayName("Find all articles by author id")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void findAllByAuthorId() throws Exception {
-        User user = userRepository.getByEmail(getUser().getEmail());
-        User admin = userRepository.getByEmail(getAdmin().getEmail());
+        UserEntity user = userRepository.getByEmail(getUser().getEmail());
+        UserEntity admin = userRepository.getByEmail(getAdmin().getEmail());
 
         //saving 2 article with author user and 1 article with author admin
         articleRepository.save(getArticle(user));
@@ -152,7 +152,7 @@ public class ArticleControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        List<Article> articles = objectMapper.readValue(response, new TypeReference<>() {
+        List<ArticleEntity> articles = objectMapper.readValue(response, new TypeReference<>() {
         });
 
         int expectedListSize = 2;
@@ -165,8 +165,8 @@ public class ArticleControllerTest {
     @DisplayName("Find article")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void findById() throws Exception {
-        User currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
-        Article articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
+        UserEntity currentAuthenticatedUser = userRepository.getByEmail(getUser().getEmail());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(currentAuthenticatedUser));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         MockHttpServletRequestBuilder request = get(endPoint)
@@ -276,8 +276,8 @@ public class ArticleControllerTest {
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle_By_User() throws Exception {
         UserDetails currentAuthenticatedUser = Objects.requireNonNull(AuthService.getCurrentUser());
-        User author = userRepository.getByEmail(currentAuthenticatedUser.getUsername());
-        Article articleFromDb = articleRepository.save(getArticle(author));
+        UserEntity author = userRepository.getByEmail(currentAuthenticatedUser.getUsername());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(author));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         mockMvc.perform(delete(endPoint)).andExpect(status().isNoContent());
@@ -288,8 +288,8 @@ public class ArticleControllerTest {
     @WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle_Someone_Else_By_Admin() throws Exception {
         UserDetails currentAuthenticatedUser = Objects.requireNonNull(AuthService.getCurrentUser());
-        User user = userRepository.getByEmail(currentAuthenticatedUser.getUsername());
-        Article articleFromDb = articleRepository.save(getArticle(user));
+        UserEntity user = userRepository.getByEmail(currentAuthenticatedUser.getUsername());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(user));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         mockMvc.perform(delete(endPoint)).andExpect(status().isNoContent());
@@ -313,8 +313,8 @@ public class ArticleControllerTest {
     @DisplayName("Delete article if is it someone else's")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void deleteArticle_If_Someone_Else() throws Exception {
-        User admin = userRepository.getByEmail(getAdmin().getEmail());
-        Article articleFromDb = articleRepository.save(getArticle(admin));
+        UserEntity admin = userRepository.getByEmail(getAdmin().getEmail());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(admin));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleDto contentArticle = ArticleDto.builder()
@@ -343,8 +343,8 @@ public class ArticleControllerTest {
     @DisplayName("Update article")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle() throws Exception {
-        User userFromDb = userRepository.getByEmail(getUser().getEmail());
-        Article articleFromDb = articleRepository.save(getArticle(userFromDb));
+        UserEntity userFromDb = userRepository.getByEmail(getUser().getEmail());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
@@ -378,8 +378,8 @@ public class ArticleControllerTest {
     @DisplayName("Update article if is it someone else's")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Someone_Else() throws Exception {
-        User admin = userRepository.getByEmail(getAdmin().getEmail());
-        Article articleFromDb = articleRepository.save(getArticle(admin));
+        UserEntity admin = userRepository.getByEmail(getAdmin().getEmail());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(admin));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
@@ -408,8 +408,8 @@ public class ArticleControllerTest {
     @DisplayName("Update article if article is not valid")
     @WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void updateArticle_If_Article_Is_Not_Valid() throws Exception {
-        User userFromDb = userRepository.getByEmail(getUser().getEmail());
-        Article articleFromDb = articleRepository.save(getArticle(userFromDb));
+        UserEntity userFromDb = userRepository.getByEmail(getUser().getEmail());
+        ArticleEntity articleFromDb = articleRepository.save(getArticle(userFromDb));
         String endPoint = this.endPoint + "/" + articleFromDb.getId();
 
         ArticleCreationRequest articleCreationRequest = ArticleCreationRequest.builder()
@@ -469,18 +469,18 @@ public class ArticleControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    private Article getArticle(User userFromDb) {
-        return Article.builder()
+    private ArticleEntity getArticle(UserEntity userFromDb) {
+        return ArticleEntity.builder()
                 .title("test article")
                 .description("test")
                 .author(userFromDb)
                 .build();
     }
 
-    private User getUser() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
+    private UserEntity getUser() {
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
 
-        return User.builder()
+        return UserEntity.builder()
                 .firstName("user")
                 .lastName("user")
                 .email("user@user.com")
@@ -490,11 +490,11 @@ public class ArticleControllerTest {
                 .build();
     }
 
-    private User getAdmin() {
-        Role roleUser = roleRepository.getByName("ROLE_USER");
-        Role roleAdmin = roleRepository.getByName("ROLE_ADMIN");
+    private UserEntity getAdmin() {
+        RoleEntity roleUser = roleRepository.getByName("ROLE_USER");
+        RoleEntity roleAdmin = roleRepository.getByName("ROLE_ADMIN");
 
-        return User.builder()
+        return UserEntity.builder()
                 .firstName("admin")
                 .lastName("admin")
                 .email("admin@admin.com")

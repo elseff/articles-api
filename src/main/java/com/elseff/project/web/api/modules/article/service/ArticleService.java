@@ -1,13 +1,12 @@
 package com.elseff.project.web.api.modules.article.service;
 
-import com.elseff.project.persistense.Article;
-import com.elseff.project.persistense.User;
+import com.elseff.project.persistense.ArticleEntity;
+import com.elseff.project.persistense.UserEntity;
 import com.elseff.project.persistense.dao.ArticleRepository;
 import com.elseff.project.persistense.dao.RoleRepository;
 import com.elseff.project.persistense.dao.UserRepository;
 import com.elseff.project.security.SecurityUtils;
 import com.elseff.project.web.api.modules.article.dto.ArticleCreationRequest;
-import com.elseff.project.web.api.modules.article.dto.ArticleDto;
 import com.elseff.project.web.api.modules.article.dto.ArticleUpdateRequest;
 import com.elseff.project.web.api.modules.article.dto.mapper.ArticleDtoMapper;
 import com.elseff.project.web.api.modules.article.exception.ArticleNotFoundException;
@@ -38,28 +37,22 @@ public class ArticleService {
     ArticleDtoMapper articleDtoMapper;
     SecurityUtils securityUtils;
 
-    public List<ArticleDto> findAll() {
-        List<Article> articles = articleRepository.findAll();
-
-        return articleDtoMapper.mapListArticleEntityToDto(articles);
+    public List<ArticleEntity> findAll() {
+        return articleRepository.findAll();
     }
 
-    public List<ArticleDto> findAllByAuthorId(Long authorId) {
-        List<Article> articles = articleRepository.findAllByAuthorId(authorId);
-
-        return articleDtoMapper.mapListArticleEntityToDto(articles);
+    public List<ArticleEntity> findAllByAuthorId(Long authorId) {
+        return articleRepository.findAllByAuthorId(authorId);
     }
 
-    public ArticleDto findById(Long id) {
-        Article article = articleRepository.findById(id)
+    public ArticleEntity findById(Long id) {
+        return articleRepository.findById(id)
                 .orElseThrow(() ->
                         new ArticleNotFoundException(id));
-
-        return articleDtoMapper.mapArticleEntityToDto(article);
     }
 
     public void deleteArticleById(Long id) {
-        Article article = articleRepository.findById(id)
+        ArticleEntity article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
@@ -76,12 +69,12 @@ public class ArticleService {
         }
     }
 
-    public ArticleDto addArticle(ArticleCreationRequest articleCreationRequest) {
+    public ArticleEntity addArticle(ArticleCreationRequest articleCreationRequest) {
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
 
-        User author = userRepository.getByEmail(currentUser.getUsername());
+        UserEntity author = userRepository.getByEmail(currentUser.getUsername());
 
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .title(articleCreationRequest.getTitle())
                 .description(articleCreationRequest.getDescription())
                 .author(author)
@@ -89,11 +82,11 @@ public class ArticleService {
                 .build();
         article = articleRepository.save(article);
 
-        return articleDtoMapper.mapArticleEntityToDto(article);
+        return article;
     }
 
-    public ArticleDto updateArticle(Long id, ArticleUpdateRequest updateRequest) {
-        Article article = articleRepository.findById(id)
+    public ArticleEntity updateArticle(Long id, ArticleUpdateRequest updateRequest) {
+        ArticleEntity article = articleRepository.findById(id)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
 
         UserDetails currentUser = Objects.requireNonNull(AuthService.getCurrentUser());
@@ -110,7 +103,7 @@ public class ArticleService {
             article = articleRepository.save(article);
             log.info("updated article {} by user {}", article.getId(), currentUser.getUsername());
 
-            return articleDtoMapper.mapArticleEntityToDto(article);
+            return article;
         } else throw new SomeoneElseArticleException();
     }
 

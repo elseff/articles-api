@@ -16,7 +16,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Table(name = "role", schema = "public")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Role implements GrantedAuthority {
+public class RoleEntity implements GrantedAuthority {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -26,7 +26,7 @@ public class Role implements GrantedAuthority {
     @Column(name = "name", nullable = false, unique = true)
     String name;
 
-    public Role(String name) {
+    public RoleEntity(String name) {
         this.name = name;
     }
 
@@ -39,7 +39,7 @@ public class Role implements GrantedAuthority {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Role role = (Role) o;
+        RoleEntity role = (RoleEntity) o;
         return id != null && Objects.equals(id, role.id);
     }
 
