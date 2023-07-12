@@ -1,6 +1,6 @@
-# Elseff Company
+# Articles API
 
->Backend part of my project
+>Backend part of Artyicles Application
 
 <hr/>
 
