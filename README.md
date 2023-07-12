@@ -1,6 +1,6 @@
 # Articles API
 
->Backend part of Artyicles Application
+>Backend part of Articles Application
 
 <hr/>
 
