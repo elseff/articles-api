@@ -9,10 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ru.elseff</groupId>
-    <artifactId>learn_spring_framework</artifactId>
+    <artifactId>articles-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>learn_spring_framework</name>
-    <description>Demo project for Spring Boot</description>
+    <name>articles-api</name>
     <properties>
         <java.version>17</java.version>
     </properties>

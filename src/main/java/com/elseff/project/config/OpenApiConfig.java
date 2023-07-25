@@ -21,6 +21,7 @@ public class OpenApiConfig {
                                                 .name("Elseff Wilson")
                                                 .email("elseffwilson@gmail.com")
                                                 .url("https://t.me/elseff_tg"))
+
                 );
     }
 }
